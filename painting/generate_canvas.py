@@ -1,12 +1,18 @@
 from PIL import Image, ImageDraw
 
 
-def test_pil() -> None:
-    im = Image.new("RGB", (150, 100), (255, 255, 255))
+def generate_empty_canvas() -> None:
+    """ Generate a white canvas of 240 by 180 pixels in bitmap format """
+    canvas = Image.new("RGB", (240, 180), (255, 255, 255))  # 240x180 pixels white canvas
 
-    # draw = ImageDraw.Draw(im)
-    # draw.line((0, 0) + im.size, fill=128)
-    # draw.line((0, im.size[1], im.size[0], 0), fill=128)
+    canvas.save("images/test", format="bmp")  # Save in images directory in bitmap format
 
-    # write to stdout
-    im.save("C:\\Users\Willem\Documents\Github\\thesis\images", "PNG")
+
+def draw_polygon() -> None:
+    with Image.open("images/test") as im:
+        draw = ImageDraw.Draw(im)
+        draw.polygon(((0, 0), (10, 0), (0, 10)), fill=128)
+        print((0, 0) + im.size)
+        # draw.line((randint(0, im.size[0]), randint(0, im.size[1])), fill=64)
+
+        im.save("images/test2", "bmp")
