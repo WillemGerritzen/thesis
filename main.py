@@ -1,6 +1,6 @@
 import os
 
-from PIL import ImageShow, Image
+from PIL import ImageShow
 
 from painting.painting import Painting
 
@@ -15,5 +15,4 @@ if __name__ == '__main__':
 
     start_painting = Painting.generate_start_painting()
 
-    with Image.open("img/random_canvas") as img:
-        ImageShow.show(img)
+    ImageShow.show(start_painting)  # TODO: Figure out how to show with Docker
