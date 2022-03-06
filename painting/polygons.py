@@ -1,14 +1,14 @@
 from random import randint
 from typing import Tuple, List
 
-from painting.canvas import Canvas
+from PIL import Image
 
 
-class Polygon(Canvas):
+class Polygon:
     """ Class containing all the methods pertaining to polygon generation """
 
-    def __init__(self, size, count_polygons: int = 100):
-        Canvas.__init__(self, size)
+    def __init__(self, canvas: Image, count_polygons: int = 100):
+        self.canvas = canvas
         self.count_polygons = count_polygons
 
     def generate_coordinates(self) -> Tuple[int, int]:
@@ -16,7 +16,7 @@ class Polygon(Canvas):
         Generates coordinates on the x- and y-axis
         :return: A tuple of x-y coordinates
         """
-        x, y = randint(0, self.size[0]), randint(0, self.size[1])
+        x, y = randint(0, self.canvas.size[0]), randint(0, self.canvas.size[1])
 
         return x, y
 

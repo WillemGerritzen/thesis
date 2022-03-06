@@ -17,7 +17,7 @@ class Painting:
         canvas = Canvas(CANVAS_SIZE)
         empty_canvas = canvas.generate_empty_canvas()
 
-        polygon = Polygon(canvas.size, count_polygons=COUNT_POLYGONS)
+        polygon = Polygon(canvas, count_polygons=COUNT_POLYGONS)
         polygons = polygon.generate_polygons()
         colors = polygon.generate_colors()
 
