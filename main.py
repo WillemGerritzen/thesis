@@ -1,20 +1,19 @@
 import os
 
-import cv2
+from PIL import ImageShow, Image
 
-from painting import generate_canvas
+from painting.painting import Painting
 
 
 def setup() -> None:
-    if 'images' not in os.listdir():
-        os.mkdir('images')
+    if 'img' not in os.listdir():
+        os.mkdir('img')
 
 
 if __name__ == '__main__':
     setup()
-    generate_canvas.generate_empty_canvas()
-    generate_canvas.draw_polygons(count_polygons=100)
-    img = cv2.imread("images/random_canvas")
 
-    cv2.imshow("random", img)
-    cv2.waitKey(0)
+    start_painting = Painting.generate_start_painting()
+
+    with Image.open("img/random_canvas") as img:
+        ImageShow.show(img)
