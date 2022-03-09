@@ -227,4 +227,5 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-img
+img/temp
+img/target

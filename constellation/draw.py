@@ -23,6 +23,6 @@ class Draw:
         for polygon_coordinates, color in zip(self.polygons, self.colors):
             draw.polygon(polygon_coordinates, fill=color)  # Draw each polygon and colorize it
 
-        self.canvas.save("img/random_canvas", "bmp")  # Save the resulting canvas
+        # self.canvas.save("img/temp/random_constellation.bmp", "bmp")  # Save the resulting canvas
 
         return self.canvas

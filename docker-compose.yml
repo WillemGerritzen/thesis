@@ -1,3 +1,0 @@
-services:
-  thesis:
-    image: ghcr.io/willemgerritzen/thesis:main
