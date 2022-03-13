@@ -1,28 +1,31 @@
-from typing import Tuple, List
+from typing import List
 
 from PIL import ImageDraw, Image
+
+from constellation.polygon import Polygon
 
 
 class Draw:
     """ Class taking the empty canvas, the array of polygons and the array of colors to put it all together """
 
-    def __init__(self, canvas: Image, polygons: Tuple[List[Tuple[int, int]], ...],
-                 colors: Tuple[Tuple[int, int, int, int], ...]):
+    def __init__(self, canvas: Image, polygons: List[Polygon], save: bool = False, count: int = 0):
         self.canvas = canvas
         self.polygons = polygons
-        self.colors = colors
+        self.save = save
+        self.count = count
 
-    def draw_polygons(self) -> Image:
+    def draw_polygons(self) -> Image.Image:
         """
-        Draws an assortment of randomly generated polygons on a canvas and saves it
+        Draws an assortment of randomly generated polygons on a canvas and optionally, saves it
         :return: Image object
         """
 
         draw = ImageDraw.Draw(self.canvas, 'RGBA')
 
-        for polygon_coordinates, color in zip(self.polygons, self.colors):
-            draw.polygon(polygon_coordinates, fill=color)  # Draw each polygon and colorize it
+        for polygon in self.polygons:
+            draw.polygon(polygon.coordinates, fill=tuple(polygon.color))  # Draw each polygon and colorize it
 
-        # self.canvas.save("img/temp/random_constellation.bmp", "bmp")  # Save the resulting canvas
+        if self.save:
+            self.canvas.save(f"img/temp/iteration{self.count}.bmp", "bmp")  # Save the resulting canvas
 
         return self.canvas

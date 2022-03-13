@@ -3,7 +3,7 @@ import os
 from PIL import Image
 
 
-class Canvas(object):
+class Canvas:
 
     def __init__(self, size):
         self.size = size
@@ -15,8 +15,8 @@ class Canvas(object):
         """
 
         if 'empty_canvas.bmp' not in os.listdir('img/temp'):
-            canvas = Image.new('RGBA', self.size, color=(255, 255, 255, 255))  # 240x180 pixels white canvas
-            canvas.save("img/temp/empty_canvas.bmp", format="bmp")  # Save in img directory in bitmap format
+            canvas = Image.new('RGBA', self.size, color=(255, 255, 255, 255))
+            canvas.save("img/temp/empty_canvas.bmp", format="bmp")
 
         else:
             canvas = Image.open('img/temp/empty_canvas.bmp')  # If an empty canvas already exists, return it

@@ -1,0 +1,2 @@
+class ResizingError(Exception):
+    pass

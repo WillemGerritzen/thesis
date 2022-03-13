@@ -1,51 +1,68 @@
-from typing import Tuple, List
+from typing import Tuple
 
 from PIL import Image
 
-from constellation.constellation import Constellation
-from .mean_squared_error import MSE
-from .utils import utils
+from constellation.constellations import Constellations
+from .fitness import Fitness
+from .mutations import Mutations
+from .utils import bitmap_to_array
 
 
 class Ppa:
     """
-    1. Generate random population of polygon constellations (Size = M = 30)
+    1. Generate random population of polygon constellations (Size = M)
     2. Compute MSE
     3. Sort population (keeping best M individuals)
     4. Create offsprings (each individual creates nr new individuals)
     5. Back to step 2.
     """
 
-    def __init__(self, canvas_size: Tuple[int, int], count_polygons: int, max_population_size: int, target_image: Image):
+    def __init__(
+            self,
+            target_image: Image,
+            canvas_size: Tuple[int, int],
+            count_polygons: int,
+            max_population_size: int,
+            save_freq: int
+    ):
         self.canvas_size = canvas_size
         self.count_polygons = count_polygons
         self.max_population_size = max_population_size
         self.target_image = target_image
+        self.target_image_array = bitmap_to_array(self.target_image.filename)
+        self.save_freq = save_freq
 
-    def generate_population(self) -> List:
-        """
-        1. Generate random population of polygon constellations
-        :return:
-        """
-        constellation = Constellation(self.canvas_size, self.count_polygons)
-
-        initial_random_constellations = [constellation.generate_random_polygon_constellation() for _ in
-                                         range(self.max_population_size)]
-
-        return initial_random_constellations
+        self.constellation = Constellations(self.canvas_size, self.count_polygons)
+        self.fitness = Fitness(self.target_image_array)
+        self.mutate = Mutations(self.count_polygons)
 
     def run_ppa(self):
+        self._first_run_ppa()
+
+    def _first_run_ppa(self):
         """
-        TBD
+        Dictates the first run of the PPA
         :return: None
         """
-        target_image_array = utils.bitmap_to_array(self.target_image.filename)
-        mse = MSE(target_image_array)
 
-        all_individuals = self.generate_population()
+        # 1. Generate random population of polygon constellations
+        all_constellations = [self.constellation.generate_random_polygon_constellation() for _ in range(self.max_population_size)]
 
-        # 2. Compute MSE
-        mse = mse.compute_mean_squared_error(utils.bitmap_to_array(all_individuals[0].filename))
-        print(mse)
+        # Separate the Image objects from the Polygon objects since they're used differently
+        population_as_images = [individual[0] for individual in all_constellations]
+        population_as_polygons = [polygon[1] for polygon in all_constellations]
 
+        # 2. Compute fitness of the whole population
+        population_fitness = self.fitness.compute_population_fitness(population_as_images)  # Make it only contain the fitness, and sort both populations based on that list
+
+        # 3. Sort population
+        sorted_population_fitness = sorted(population_fitness, key=lambda individual: individual[1], reverse=True)
+        sorted_population_as_polygons = [pop_poly for _, pop_poly in sorted(zip(sorted_population_fitness, population_as_polygons), key=lambda individual: individual[0][1], reverse=True)]
+        print(sorted_population_as_polygons)
+
+        # 4. Create offsprings
+        individual_as_image, individual_as_polygons = population_as_images[0], population_as_polygons[0]
+        # ImageShow.show(individual_as_image)
+        mutated_individual = self.mutate.change_drawing_index(individual_as_polygons)
+        self.constellation.replace_with_mutated_individual(mutated_individual)
 
