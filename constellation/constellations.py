@@ -1,22 +1,21 @@
-from typing import Tuple, List
-
-from PIL.Image import Image
+from typing import Tuple
 
 from constellation.canvas import Canvas
+from constellation.constellation import Constellation
 from constellation.draw import Draw
-from constellation.polygon import Polygon
 from constellation.polygons import PolygonGenerator
 
 
 class Constellations:
     """ Contains methods pertaining to the generation and modification of constellations """
 
-    def __init__(self, canvas_size: Tuple[int, int], count_polygons: int, save_freq: bool = 0):
+    def __init__(self, canvas_size: Tuple[int, int], count_vertices: int, count_polygons: int, save_freq: bool = 0):
         self.canvas_size = canvas_size
         self.count_polygons = count_polygons
+        self.count_vertices = count_vertices
         self.save_freq = save_freq
 
-    def generate_random_polygon_constellation(self) -> Tuple[Image, List[Polygon]]:
+    def generate_random_polygon_constellation(self) -> Constellation:
         """
         Main script generating a random constellation
         :return: The start constellation as an Image object
@@ -25,22 +24,24 @@ class Constellations:
         canvas = Canvas(self.canvas_size)
         empty_canvas = canvas.generate_empty_canvas()
 
-        polygon_gen = PolygonGenerator(empty_canvas, count_polygons=self.count_polygons)
-        polygons = polygon_gen.generate_polygons()
+        polygon_gen = PolygonGenerator(empty_canvas, self.count_polygons, self.count_vertices)
+        constellation = polygon_gen.generate_polygons(initial_vertices=3)
 
-        draw = Draw(empty_canvas, polygons)
-        random_polygon_constellation = draw.draw_polygons()
+        draw = Draw(empty_canvas, constellation, self.save_freq)
+        constellation_as_image = draw.draw_polygons()
 
-        return random_polygon_constellation, polygons
+        constellation.individual_as_image = constellation_as_image
 
-    def replace_with_mutated_individual(self, mutated_individual: List[Polygon]) -> None:
+        return constellation
+
+    def replace_with_mutated_individual(self, mutated_individual: Constellation) -> Constellation:
         """
         Replaces an individual in the population with its mutated counterpart
         :param mutated_individual: The mutated individual
         :return: None
         """
 
-        assert len(mutated_individual) == self.count_polygons
+        assert len(mutated_individual.individual_as_polygons) == self.count_polygons  # Make sure the number of polygons hasn't changed during mutation
 
         # Draw mutated individual
         canvas = Canvas(self.canvas_size)
@@ -48,7 +49,10 @@ class Constellations:
 
         draw = Draw(empty_canvas, mutated_individual)
         mutated_constellation = draw.draw_polygons()
-        print(mutated_constellation)
+
+        mutated_individual.individual_as_image = mutated_constellation
+
+        return mutated_individual
 
 
 

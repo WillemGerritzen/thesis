@@ -1,5 +1,5 @@
 import os
-from typing import Tuple
+from typing import Tuple, Dict, Union
 
 from PIL import Image
 
@@ -8,10 +8,19 @@ from exception_handling import ResizingError
 
 class Utils:
 
-    def __init__(self, canvas_size: Tuple[int, int], target_image_name: str):
-        self.canvas_size = canvas_size
-        self.target_image_name = target_image_name
+    def __init__(self, parameters: Dict[str, Union[Tuple[int, int], int, str]]):
+        self.canvas_size = parameters["CANVAS_SIZE"]
+        self.target_image_name = parameters["TARGET_IMAGE"]
         self.target_image = None
+
+        self.count_vertices = parameters["COUNT_VERTICES"]
+
+    def compute_polygon_count(self) -> int:
+        """ Computes the number of polygons """
+
+        polygon_count = self.count_vertices // 4
+
+        return polygon_count
 
     def validate_image(self) -> None:
         """ Validates the target image to ensure it can be used safely """

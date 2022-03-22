@@ -7,8 +7,9 @@ from utils import Utils
 
 parameters = {
     "CANVAS_SIZE": (240, 180),
-    "COUNT_POLYGONS": 100,
+    "COUNT_POLYGONS": 0,  # Actual value is computed later
     "MAX_POPULATION_SIZE": 30,
+    "COUNT_VERTICES": 300,
     "TARGET_IMAGE": "Starry_Night",
     "SAVE_FREQUENCY": 0
 }
@@ -20,9 +21,11 @@ def setup() -> None:
         os.mkdir('img/temp')
         os.mkdir('img/target')
 
-    utils = Utils(parameters["CANVAS_SIZE"], parameters["TARGET_IMAGE"])
+    utils = Utils(parameters)
 
     utils.validate_image()
+
+    parameters["COUNT_POLYGONS"] = utils.compute_polygon_count()
 
     parameters["TARGET_IMAGE"] = 'img/target/' + parameters["TARGET_IMAGE"] + '.bmp'
 
@@ -37,6 +40,7 @@ if __name__ == '__main__':
             parameters["CANVAS_SIZE"],
             parameters["COUNT_POLYGONS"],
             parameters["MAX_POPULATION_SIZE"],
+            parameters["COUNT_VERTICES"],
             parameters["SAVE_FREQUENCY"]
         )
 

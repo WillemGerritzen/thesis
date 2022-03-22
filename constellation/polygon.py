@@ -2,7 +2,10 @@ from typing import List, Tuple
 
 
 class Polygon(object):
-    """ Class containing polygon coordinates and color attribute for simple handling downstream """
+    """ Polygon model """
 
-    coordinates: List[Tuple[int, int]]
+    coordinates: List[Tuple[float, float]]
     color: List[int]
+
+    def __str__(self):
+        return f"Coordinates: {self.coordinates}\nColor: {self.color}"

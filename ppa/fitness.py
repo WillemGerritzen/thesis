@@ -1,9 +1,9 @@
-from typing import List, Tuple
+from typing import List
 
 import numpy as np
-from PIL import Image
 from sklearn.metrics import mean_squared_error
 
+from constellation.constellation import Constellation
 from .utils import image_object_to_array
 
 
@@ -12,33 +12,21 @@ class Fitness:
     def __init__(self, target_image_array: np.ndarray):
         self.target_image_array = target_image_array
 
-    def compute_population_fitness(self, population: List[Image.Image]) -> List[Tuple[Image.Image, float]]:
+    def compute_population_fitness(self, population: List[Constellation]) -> None:
         """
         Computes the fitness for a population
         :param population: The population to compute the fitness for
         :return: The population with each individual's fitness appended
         """
 
-        mse_population = self._compute_mse_for_population(population)
+        self._compute_mse_for_population(population)
 
-        mse_max = max(mse_population)
-        mse_min = min(mse_population)
+        mse_max = max(population, key=lambda indiv: indiv.mse)
+        mse_min = min(population, key=lambda indiv: indiv.mse)
 
-        population_fitness = [
-            (
-                individual,
-                self._compute_fitness(
-                    mse_max,
-                    mse_min,
-                    mse_individual
-                )
-            ) for mse_individual, individual in zip(
-                mse_population,
-                population
-            )
-        ]
-
-        return population_fitness
+        for individual in population:
+            if not individual.fitness:  # Avoid computing an already known value
+                individual.fitness = self._compute_fitness(mse_max.mse, mse_min.mse, individual.mse)
 
     def _compute_fitness(self, mse_max: float, mse_min: float, mse_individual: float) -> float:
         """
@@ -55,18 +43,16 @@ class Fitness:
 
         return normalized_fitness
 
-    def _compute_mse_for_population(self, population: List) -> List[float]:
+    def _compute_mse_for_population(self, population: List[Constellation]) -> None:
         """
         Iterates through a given population and computes the MSE for each individual
         :param population: The population to iterate through
-        :return: A list comprising of the fitness value for each individual
+        :return: A list consisting of the fitness value for each individual
         """
 
-        mse_population = [
-            self._compute_mean_squared_error(image_object_to_array(individual)) for individual in population
-        ]
-
-        return mse_population
+        for individual in population:
+            if not individual.mse:  # Avoid computing an already known value
+                individual.mse = self._compute_mean_squared_error(image_object_to_array(individual.individual_as_image))
 
     def _compute_mean_squared_error(self, individual_array: np.ndarray) -> float:
         """
