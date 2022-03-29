@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from PIL.Image import Image
 
-from constellation.polygon import Polygon
+from models.polygon import Polygon
 
 
 class Constellation(object):
@@ -16,7 +16,9 @@ class Constellation(object):
         self.mse: Optional[float] = None
         self.fitness: Optional[float] = None
 
-        self.offsprings: Optional[List[Polygon]] = None
         self.count_offsprings: Optional[int] = None
         self.count_mutations: Optional[int] = None
+
+    def __add__(self, other):
+        return self.fitness + other.fitness
 

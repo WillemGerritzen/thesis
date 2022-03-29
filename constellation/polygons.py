@@ -4,8 +4,8 @@ from typing import Tuple, List
 
 from PIL.Image import Image
 
-from constellation.constellation import Constellation
-from constellation.polygon import Polygon
+from models.constellation import Constellation
+from models.polygon import Polygon
 
 
 class PolygonGenerator:
@@ -48,11 +48,11 @@ class PolygonGenerator:
         :return: An instantiated Polygon object with coordinates and color
         """
 
-        polygon = Polygon()
+        coordinates = [self._generate_coordinate() for _ in range(initial_vertices)]
 
-        polygon.coordinates = [self._generate_coordinate() for _ in range(initial_vertices)]
+        color = self._generate_color()
 
-        polygon.color = self._generate_color()
+        polygon = Polygon(coordinates, color)
 
         return polygon
 

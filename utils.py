@@ -1,6 +1,7 @@
 import os
-from typing import Tuple, Dict, Union
+from typing import Tuple
 
+import numpy as np
 from PIL import Image
 
 from exception_handling import ResizingError
@@ -8,12 +9,11 @@ from exception_handling import ResizingError
 
 class Utils:
 
-    def __init__(self, parameters: Dict[str, Union[Tuple[int, int], int, str]]):
-        self.canvas_size = parameters["CANVAS_SIZE"]
-        self.target_image_name = parameters["TARGET_IMAGE"]
+    def __init__(self, canvas_size: Tuple[int, int], target_image_name: str, count_vertices: int):
+        self.canvas_size = canvas_size
+        self.target_image_name = target_image_name
+        self.count_vertices = count_vertices
         self.target_image = None
-
-        self.count_vertices = parameters["COUNT_VERTICES"]
 
     def compute_polygon_count(self) -> int:
         """ Computes the number of polygons """
@@ -22,7 +22,7 @@ class Utils:
 
         return polygon_count
 
-    def validate_image(self) -> None:
+    def validate_target_image(self) -> None:
         """ Validates the target image to ensure it can be used safely """
 
         self._check_image_existence()
@@ -69,3 +69,51 @@ class Utils:
         if not self.target_image.filename.lower().endswith('.bmp'):
             self.target_image.save(self.target_image.filename[:-4] + '.bmp', format="bmp")
             os.remove(self.target_image.filename)
+
+    @staticmethod
+    def bitmap_to_array(bitmap_file_name: str) -> np.ndarray:
+        """
+        Converts a bitmap file to a Numpy 2D array
+        :param bitmap_file_name: The bitmap file to convert
+        :return: A 2D array version of the bitmap file
+        """
+
+        with Image.open(bitmap_file_name) as img:
+            
+            # noinspection PyTypeChecker
+            array = np.array(img)
+
+        # Flatten the array
+        x, y, rgb = array.shape
+        one_d_array = array.reshape((x * y * rgb))
+
+        return one_d_array
+
+    @staticmethod
+    def image_object_to_array(image_obj: Image.Image) -> np.ndarray:
+        """
+        Converts an Image object to a Numpy 2D array
+        :param image_obj: The Image object to be converted
+        :return: The 2d array version of the Image object
+        """
+
+        # noinspection PyTypeChecker
+        array = np.array(image_obj)
+
+        # Flatten the array
+        x, y, rgb = array.shape
+        one_d_array = array.reshape((x * y * rgb))
+
+        return one_d_array
+
+    @staticmethod
+    def check_directories():
+        """ Checks for the existence of given directories and creates them if they do not exist """
+        if 'temp' not in os.listdir('img'):
+            os.mkdir('img/temp')
+
+        if 'results' not in os.listdir():
+            os.mkdir('results')
+
+
+

@@ -1,9 +1,11 @@
 import math
 import random
+from functools import partial
 from typing import Tuple
 
-from constellation.constellation import Constellation
-from constellation.polygon import Polygon
+from constellation.constellations import Constellations
+from models.constellation import Constellation
+from models.polygon import Polygon
 
 
 class Mutations:
@@ -19,6 +21,29 @@ class Mutations:
         self.count_polygons = count_polygons
         self.count_vertices = count_vertices
         self.max_population_size = max_population_size
+
+        self.mutation_options = [
+            partial(self._move_vertex),
+            partial(self._transfer_vertex),
+            partial(self._change_drawing_index),
+            partial(self._change_color)
+        ]
+
+    def randomly_mutate(self, individual: Constellation) -> Constellation:
+        """
+        Randomly selects a mutation option and applies it to the individual
+        :param individual: The individual to be mutated
+        :return: The mutated individual
+        """
+
+        new_individual = Constellations.copy_constellation(individual)
+
+        for _ in range(individual.count_mutations):
+            random_mutation = random.choice(self.mutation_options)
+
+            new_individual = random_mutation(new_individual)
+
+        return new_individual
 
     def compute_offspring_count(self, individual: Constellation) -> None:
         """
@@ -45,7 +70,7 @@ class Mutations:
             ) * 1 - individual.fitness * random.random()
         )
 
-    def move_vertex(self, individual: Constellation) -> Constellation:
+    def _move_vertex(self, individual: Constellation) -> Constellation:
         """
         Moves the vertex of a randomly selected Polygon
         :param individual: The list of candidate Polygons for a move
@@ -64,7 +89,7 @@ class Mutations:
 
         return individual
 
-    def transfer_vertex(self, individual: Constellation) -> Constellation:
+    def _transfer_vertex(self, individual: Constellation) -> Constellation:
         """
         Moves a vertex to 'hide' it while keeping the count of vertices the same.
         :param individual: The list of candidate Polygons
@@ -94,7 +119,7 @@ class Mutations:
 
         return individual
 
-    def change_drawing_index(self, individual: Constellation) -> Constellation:
+    def _change_drawing_index(self, individual: Constellation) -> Constellation:
         """
         Randomly selects a Polygon and assigns it a new randomly selected drawing order
         :param individual: A list containing the Polygon objects in a constellation
@@ -109,7 +134,7 @@ class Mutations:
 
         return individual
 
-    def change_color(self, individual: Constellation) -> Constellation:
+    def _change_color(self, individual: Constellation) -> Constellation:
         """
         Randomly selects a polygon, an RGBA-channel and a new color, and switches the channel to that new color
         :param individual: A list containing the Polygon objects in a constellation

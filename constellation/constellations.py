@@ -1,9 +1,9 @@
 from typing import Tuple
 
 from constellation.canvas import Canvas
-from constellation.constellation import Constellation
 from constellation.draw import Draw
 from constellation.polygons import PolygonGenerator
+from models.constellation import Constellation
 
 
 class Constellations:
@@ -27,14 +27,14 @@ class Constellations:
         polygon_gen = PolygonGenerator(empty_canvas, self.count_polygons, self.count_vertices)
         constellation = polygon_gen.generate_polygons(initial_vertices=3)
 
-        draw = Draw(empty_canvas, constellation, self.save_freq)
+        draw = Draw(empty_canvas, constellation)
         constellation_as_image = draw.draw_polygons()
 
         constellation.individual_as_image = constellation_as_image
 
         return constellation
 
-    def replace_with_mutated_individual(self, mutated_individual: Constellation) -> Constellation:
+    def draw_mutated_individual(self, mutated_individual: Constellation) -> Constellation:
         """
         Replaces an individual in the population with its mutated counterpart
         :param mutated_individual: The mutated individual
@@ -54,5 +54,17 @@ class Constellations:
 
         return mutated_individual
 
+    @staticmethod
+    def copy_constellation(individual: Constellation) -> Constellation:
+        """
+        Copies an individual to a new constellation
+        :param individual: The individual to copy
+        :return: The copied individual
+        """
 
+        polygons = individual.individual_as_polygons
+
+        new_individual = Constellation(polygons)
+
+        return new_individual
 

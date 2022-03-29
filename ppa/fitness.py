@@ -3,14 +3,16 @@ from typing import List
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
-from constellation.constellation import Constellation
-from .utils import image_object_to_array
+from models.constellation import Constellation
+from utils import Utils
 
 
 class Fitness:
 
     def __init__(self, target_image_array: np.ndarray):
-        self.target_image_array = target_image_array
+        self.target_image_array_red_channel = target_image_array[::3]
+        self.target_image_array_green_channel = target_image_array[1::3]
+        self.target_image_array_blue_channel = target_image_array[2::3]
 
     def compute_population_fitness(self, population: List[Constellation]) -> None:
         """
@@ -52,7 +54,9 @@ class Fitness:
 
         for individual in population:
             if not individual.mse:  # Avoid computing an already known value
-                individual.mse = self._compute_mean_squared_error(image_object_to_array(individual.individual_as_image))
+                individual.mse = self._compute_mean_squared_error(
+                    Utils.image_object_to_array(individual.individual_as_image)
+                )
 
     def _compute_mean_squared_error(self, individual_array: np.ndarray) -> float:
         """
@@ -62,9 +66,15 @@ class Fitness:
         :return: The mean squared error as a float
         """
 
-        mse = mean_squared_error(self.target_image_array, individual_array)
+        individual_array_red_channel = individual_array[::3]
+        individual_array_green_channel = individual_array[1::3]
+        individual_array_blue_channel = individual_array[2::3]
 
-        return mse
+        mse_red = mean_squared_error(self.target_image_array_red_channel, individual_array_red_channel)
+        mse_green = mean_squared_error(self.target_image_array_green_channel, individual_array_green_channel)
+        mse_blue = mean_squared_error(self.target_image_array_blue_channel, individual_array_blue_channel)
+
+        return mse_red + mse_blue + mse_green
 
     @staticmethod
     def _normalize_fitness(fitness: float) -> float:

@@ -15,7 +15,7 @@ class Canvas:
         """
 
         if 'empty_canvas.bmp' not in os.listdir('img/temp'):
-            canvas = Image.new('RGBA', self.size, color=(255, 255, 255, 255))
+            canvas = Image.new('RGB', self.size, color=(0, 0, 0))
             canvas.save("img/temp/empty_canvas.bmp", format="bmp")
 
         else:
