@@ -43,14 +43,14 @@ class Ppa:
         self.experiment_name = experiment_name
 
         self.constellation = Constellations(self.canvas_size, self.count_vertices, self.count_polygons)
-        self.fitness = Fitness(self.target_image_array)
+        self.fitness = Fitness(self.target_image_array, self.canvas_size)
         self.mutate = Mutations(self.canvas_size, self.count_polygons, self.count_vertices, self.max_population_size)
         self.save = SaveResults(self.experiment_name, self.count_vertices, self.save_freq)
 
     def run_ppa(self):
         """ Main PPA logic """
 
-        print(f"Starting PPA with {self.max_iterations} iterations")
+        print(f"Starting PPA with {self.max_iterations} iterations on {self.target_image.filename}")
 
         # 1. Generate random population of polygon constellations
         population = [self.constellation.generate_random_polygon_constellation() for _ in

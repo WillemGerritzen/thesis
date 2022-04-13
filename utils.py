@@ -43,14 +43,16 @@ class Utils:
 
             converted_image.save(self.target_image.filename)
 
+            converted_image.close()
+            self.target_image.close()
+
     def _check_image_existence(self) -> None:
         """ Checks the target image can be found and loads it """
 
         extensions = ['.jpg', '.png', '.bmp']
         for extension in extensions:
             if self.target_image_name + extension in os.listdir('img/target'):
-                with Image.open('img/target/' + self.target_image_name + extension) as img:
-                    self.target_image = img
+                self.target_image = Image.open('img/target/' + self.target_image_name + extension)
 
     def _determine_mode(self) -> str:
         """
@@ -65,9 +67,8 @@ class Utils:
 
     def _check_extension(self) -> None:
         """ Converts the target image to a bitmap file if it is in a different format """
-
         if not self.target_image.filename.lower().endswith('.bmp'):
-            self.target_image.save(self.target_image.filename[:-4] + '.bmp', format="bmp")
+            self.target_image.save(self.target_image.filename[:-4] + '.bmp', format='BMP')
             os.remove(self.target_image.filename)
 
     @staticmethod
@@ -79,15 +80,11 @@ class Utils:
         """
 
         with Image.open(bitmap_file_name) as img:
-            
+
             # noinspection PyTypeChecker
             array = np.array(img)
 
-        # Flatten the array
-        x, y, rgb = array.shape
-        one_d_array = array.reshape((x * y * rgb))
-
-        return one_d_array
+        return array
 
     @staticmethod
     def image_object_to_array(image_obj: Image.Image) -> np.ndarray:
@@ -100,15 +97,14 @@ class Utils:
         # noinspection PyTypeChecker
         array = np.array(image_obj)
 
-        # Flatten the array
-        x, y, rgb = array.shape
-        one_d_array = array.reshape((x * y * rgb))
-
-        return one_d_array
+        return array
 
     @staticmethod
     def check_directories():
         """ Checks for the existence of given directories and creates them if they do not exist """
+        if 'img' not in os.listdir():
+            os.mkdir('img')
+
         if 'temp' not in os.listdir('img'):
             os.mkdir('img/temp')
 

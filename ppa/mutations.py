@@ -151,7 +151,7 @@ class Mutations:
 
     def _choose_two_random_polygons(self, individual: Constellation) -> Tuple[Polygon, Polygon]:
         """
-        Utility function randomly pickking two Polygons with some added checks (can't be the same Polygon twice and one
+        Utility function randomly picking two Polygons with some added checks (can't be the same Polygon twice and one
         of the Polygons must have at least 4 vertices
         :type individual: The list of Polygons to choose from
         :return: A tuple with the two selected Polygons

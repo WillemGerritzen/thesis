@@ -1,7 +1,6 @@
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
-from sklearn.metrics import mean_squared_error
 
 from models.constellation import Constellation
 from utils import Utils
@@ -9,10 +8,9 @@ from utils import Utils
 
 class Fitness:
 
-    def __init__(self, target_image_array: np.ndarray):
-        self.target_image_array_red_channel = target_image_array[::3]
-        self.target_image_array_green_channel = target_image_array[1::3]
-        self.target_image_array_blue_channel = target_image_array[2::3]
+    def __init__(self, target_image_array: np.ndarray, canvas_size: Tuple[int, int]):
+        self.target_image_array = target_image_array
+        self.canvas_size = canvas_size
 
     def compute_population_fitness(self, population: List[Constellation]) -> None:
         """
@@ -66,15 +64,11 @@ class Fitness:
         :return: The mean squared error as a float
         """
 
-        individual_array_red_channel = individual_array[::3]
-        individual_array_green_channel = individual_array[1::3]
-        individual_array_blue_channel = individual_array[2::3]
+        error = np.square(individual_array - self.target_image_array)
+        mean_error = np.divide(error, self.canvas_size[0] * self.canvas_size[1])
+        mse = np.sum(mean_error)
 
-        mse_red = mean_squared_error(self.target_image_array_red_channel, individual_array_red_channel)
-        mse_green = mean_squared_error(self.target_image_array_green_channel, individual_array_green_channel)
-        mse_blue = mean_squared_error(self.target_image_array_blue_channel, individual_array_blue_channel)
-
-        return mse_red + mse_blue + mse_green
+        return float(mse)
 
     @staticmethod
     def _normalize_fitness(fitness: float) -> float:

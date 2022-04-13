@@ -14,11 +14,6 @@ class Canvas:
         :return: The empty canvas as an Image object
         """
 
-        if 'empty_canvas.bmp' not in os.listdir('img/temp'):
-            canvas = Image.new('RGB', self.size, color=(0, 0, 0))
-            canvas.save("img/temp/empty_canvas.bmp", format="bmp")
-
-        else:
-            canvas = Image.open('img/temp/empty_canvas.bmp')  # If an empty canvas already exists, return it
+        canvas = Image.new('RGB', self.size, color=(0, 0, 0))
 
         return canvas
