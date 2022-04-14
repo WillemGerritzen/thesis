@@ -1,3 +1,4 @@
+import os.path
 from typing import Tuple
 
 from PIL import Image
@@ -45,7 +46,7 @@ class Ppa:
         self.constellation = Constellations(self.canvas_size, self.count_vertices, self.count_polygons)
         self.fitness = Fitness(self.target_image_array, self.canvas_size)
         self.mutate = Mutations(self.canvas_size, self.count_polygons, self.count_vertices, self.max_population_size)
-        self.save = SaveResults(self.experiment_name, self.count_vertices, self.save_freq)
+        self.save = SaveResults(self.experiment_name, self.count_vertices, self.save_freq, os.path.basename(self.target_image.filename)[:-4])
 
     def run_ppa(self):
         """ Main PPA logic """
