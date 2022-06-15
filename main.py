@@ -1,67 +1,71 @@
-from PIL import Image
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 
-from ppa.ppa import Ppa
+from PIL import Image
+
+from algos.hc import HillClimber
+from algos.ppa import Ppa
 from utils import Utils
 
 TEST = False
 
 parameters = {
-    "CANVAS_SIZE": None,
-    "COUNT_POLYGONS": 0,  # Actual value is computed later
-    "MAX_POPULATION_SIZE": 30,
-    "COUNT_VERTICES": 1000,
-    "TARGET_IMAGE": "",
-    "SAVE_FREQUENCY": 1000,
-    "MAX_ITERATIONS": 10 ** 6,
-    "EXPERIMENT_NAME": "First_experiment",
+    "canvas_size": None,
+    "count_polygons": 0,  # Actual value is computed later
+    "max_population_size": 30,
+    "count_vertices": 1000,
+    "target_image_str": "",
+    "save_freq": 1000,
+    "max_iterations": 10 ** 6,
+    "experiment_name": "First_experiment",
+    "target_image": Image
 }
 
 
 def setup() -> None:
 
     if TEST:
-        parameters["EXPERIMENT_NAME"] = "Test"
-        parameters["MAX_ITERATIONS"] = 1
-        parameters["SAVE_FREQUENCY"] = 1
+        parameters["experiment_name"] = "Test"
+        parameters["max_iterations"] = 1
+        parameters["save_frequency"] = 1
 
     utils = Utils(
-        parameters["CANVAS_SIZE"],
-        parameters["TARGET_IMAGE"],
-        parameters["COUNT_VERTICES"]
+        parameters["canvas_size"],
+        parameters["target_image_str"],
+        parameters["count_vertices"]
     )
 
     utils.check_directories()
 
-    parameters["COUNT_POLYGONS"] = utils.compute_polygon_count()
+    parameters["count_polygons"] = utils.compute_polygon_count()
 
-    parameters["TARGET_IMAGE"] = 'img/target/' + parameters["TARGET_IMAGE"] + '.bmp'
+    parameters["target_image_str"] = 'img/target/' + parameters["target_image_str"] + '.bmp'
 
 
 if __name__ == '__main__':
     target_images = ("Starry_Night", "Mona_Lisa", "Mondriaan", "The_Kiss", "Johann_Sebastian_Bach",
                      "The_Persistence_of_Memory", "Convergence")
-    pool = Pool(processes=64)
+
+    count_cpus = cpu_count()
+    pool = Pool(processes=count_cpus)
 
     for target_image in target_images:
-        parameters["TARGET_IMAGE"] = target_image
+        parameters["target_image_str"] = target_image
         setup()
 
-        with Image.open(parameters["TARGET_IMAGE"]) as img:
-            parameters["CANVAS_SIZE"] = img.size
+        with Image.open(parameters["target_image_str"]) as img:
+            parameters["canvas_size"] = img.size
+            parameters["target_image"] = img
 
             ppa = Ppa(
-                img,
-                parameters["CANVAS_SIZE"],
-                parameters["COUNT_POLYGONS"],
-                parameters["MAX_POPULATION_SIZE"],
-                parameters["COUNT_VERTICES"],
-                parameters["SAVE_FREQUENCY"],
-                parameters["MAX_ITERATIONS"],
-                parameters["EXPERIMENT_NAME"]
+                **parameters
             )
 
-        pool.apply_async(ppa.run_ppa())
+            hc = HillClimber(
+                **parameters
+            )
+
+        # pool.apply_async(ppa.run_ppa())
+        pool.apply_async(hc.run_hc())
 
     pool.close()
     pool.join()

@@ -1,10 +1,10 @@
 import os.path
-from typing import Tuple
+from typing import Tuple, Any
 
 from PIL import Image
 
+from algos.save import SaveResults
 from constellation.constellations import Constellations
-from ppa.save import SaveResults
 from statistics.cli import stats
 from utils import Utils
 from .fitness import Fitness
@@ -31,8 +31,9 @@ class Ppa:
             count_vertices: int,
             save_freq: int,
             max_iterations: int,
-            experiment_name: str
-    ):
+            experiment_name: str,
+            target_image_str: str
+    ) -> None:
         self.canvas_size = canvas_size
         self.count_polygons = count_polygons
         self.max_population_size = max_population_size
@@ -42,13 +43,14 @@ class Ppa:
         self.save_freq = save_freq
         self.max_iterations = max_iterations
         self.experiment_name = experiment_name
+        self.target_image_str = target_image_str
 
         self.constellation = Constellations(self.canvas_size, self.count_vertices, self.count_polygons)
         self.fitness = Fitness(self.target_image_array, self.canvas_size)
         self.mutate = Mutations(self.canvas_size, self.count_polygons, self.count_vertices, self.max_population_size)
         self.save = SaveResults(self.experiment_name, self.count_vertices, self.save_freq, os.path.basename(self.target_image.filename)[:-4])
 
-    def run_ppa(self):
+    def run_ppa(self) -> Any:
         """ Main PPA logic """
 
         print(f"Starting PPA with {self.max_iterations} iterations on {self.target_image.filename}")

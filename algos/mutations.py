@@ -3,6 +3,8 @@ import random
 from functools import partial
 from typing import Tuple
 
+import numpy as np
+
 from constellation.constellations import Constellations
 from models.constellation import Constellation
 from models.polygon import Polygon
@@ -39,7 +41,7 @@ class Mutations:
         new_individual = Constellations.copy_constellation(individual)
 
         for _ in range(individual.count_mutations):
-            random_mutation = random.choice(self.mutation_options)
+            random_mutation = np.random.choice(self.mutation_options)
 
             new_individual = random_mutation(new_individual)
 

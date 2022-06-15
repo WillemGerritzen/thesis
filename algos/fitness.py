@@ -52,11 +52,10 @@ class Fitness:
 
         for individual in population:
             if not individual.mse:  # Avoid computing an already known value
-                individual.mse = self._compute_mean_squared_error(
-                    Utils.image_object_to_array(individual.individual_as_image)
-                )
+                individual.mse = self.compute_mean_squared_error(
+                    Utils.image_object_to_array(individual.individual_as_image))
 
-    def _compute_mean_squared_error(self, individual_array: np.ndarray) -> float:
+    def compute_mean_squared_error(self, individual_array: np.ndarray) -> float:
         """
         Computes the MSE given an array of predicted values (the individual being evaluated) and an array of true
         values (the target image)
