@@ -13,12 +13,13 @@ from models.polygon import Polygon
 class Mutations:
     """ Contains all the functions pertaining to the mutation section of the PPA """
 
-    def __init__(self,
-                 canvas_size: Tuple[int, int],
-                 count_polygons: int,
-                 count_vertices: int,
-                 max_population_size: int
-                 ):
+    def __init__(
+            self,
+            canvas_size: Tuple[int, int],
+            count_polygons: int,
+            count_vertices: int,
+            max_population_size: int
+    ):
         self.canvas_size = canvas_size
         self.count_polygons = count_polygons
         self.count_vertices = count_vertices
@@ -71,6 +72,18 @@ class Mutations:
                     1 / self.max_population_size
             ) * 1 - individual.fitness * random.random()
         )
+
+    def simulate_annealing(self, mse_diff: float, iteration_number: int) -> float:
+        """
+        Simulates annealing by computing the probability of a mutation based on the MSE difference and the temperature
+        :param mse_diff: The MSE difference between the current and the previous generation
+        :param iteration_number: The current iteration number
+        :return: The probability of a mutation
+        """
+
+        temperature = self.compute_temperature(iteration_number)
+
+        return math.exp(-mse_diff / temperature)
 
     def _move_vertex(self, individual: Constellation) -> Constellation:
         """
@@ -207,3 +220,17 @@ class Mutations:
         x_midpoint, y_midpoint = ((x1 + x2) / 2, (y1 + y2) / 2)
 
         return x_midpoint, y_midpoint
+
+    @staticmethod
+    def compute_temperature(iteration_number: int) -> float:
+        """
+        Utility function to compute the temperature based on the iteration number
+        :param iteration_number: The iteration number
+        :return: The new temperature
+        """
+
+        c = 255 ** 2 * 3
+
+        temperature = c / math.log(iteration_number + 1)
+
+        return temperature

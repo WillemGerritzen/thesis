@@ -1,4 +1,5 @@
 import os
+import random
 from typing import Tuple, Any
 
 from PIL.Image import Image
@@ -10,12 +11,12 @@ from constellation.constellations import Constellations
 from utils import Utils
 
 
-class HillClimber:
+class SimulatedAnnealing:
     """
     1. Generate a random polygon constellation
     2. Compute MSE for the individual
     3. Randomly mutate the individual
-    4. Compute offspring MSE. If lower, offspring becomes new individual, else is discarded
+    4. Compute offspring MSE. If lower, offspring becomes new individual, else, compute chance of being discarded
     5. Back to step 2
     """
 
@@ -47,17 +48,19 @@ class HillClimber:
         self.mutate = Mutations(self.canvas_size, self.count_polygons, self.count_vertices,
                                 self.max_population_size)
         self.save = SaveResults(self.experiment_name, self.count_vertices, self.save_freq,
-                                os.path.basename(self.target_image.filename)[:-4], "HillClimber")
+                                os.path.basename(self.target_image.filename)[:-4], "Simulated_Annealing")
 
-    def run_hc(self) -> Any:
+    def run_sa(self) -> Any:
         """ Main hillclimber logic """
 
-        print(f"Starting Hillclimber with {self.max_iterations} iterations on {self.target_image.filename}")
+        print(f"Starting Simulated Annealing with {self.max_iterations} iterations on {self.target_image.filename}")
 
         # 1. Generate a random polygon constellation
         individual = self.constellation.generate_random_polygon_constellation()
 
         for iteration in range(self.max_iterations):
+            simulated_annealing = False
+
             print("----------------------------------")
             print(f"Starting iteration {iteration}")
             print("----------------------------------")
@@ -75,14 +78,28 @@ class HillClimber:
             offspring = self.mutate.randomly_mutate(individual)
             self.constellation.draw_mutated_individual(offspring)
 
-            # 4. Compute offspring MSE. If lower, offspring becomes new individual, else is discarded
-            offspring.mse = self.fitness.compute_mean_squared_error(Utils.image_object_to_array(offspring.individual_as_image))
+            # 4. Compute offspring MSE. If lower, offspring becomes new individual, else, compute chance of being discarded
+            offspring.mse = self.fitness.compute_mean_squared_error(
+                Utils.image_object_to_array(offspring.individual_as_image))
 
             if offspring.mse < individual.mse:
                 individual = offspring
 
                 print(f"Found better MSE: {individual.mse}")
 
-                self.save.save_iteration(iteration=iteration, average_mse=individual.mse, population=[individual])
+                self.save.save_iteration(iteration=iteration, average_mse=individual.mse, population=[individual],
+                                         simulated_annealing=simulated_annealing)
+
+            else:
+                mse_difference = offspring.mse - individual.mse
+
+                if random.random() < self.mutate.simulate_annealing(mse_difference, iteration):
+                    individual = offspring
+                    simulated_annealing = True
+
+                    print(f"Found better MSE by SA: {individual.mse}")
+
+                    self.save.save_iteration(iteration=iteration, average_mse=individual.mse, population=[individual],
+                                             simulated_annealing=simulated_annealing)
 
 

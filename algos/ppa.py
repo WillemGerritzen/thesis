@@ -9,7 +9,6 @@ from statistics.cli import stats
 from utils import Utils
 from .fitness import Fitness
 from .mutations import Mutations
-from .sortpopulation import sort
 
 
 class Ppa:
@@ -48,7 +47,7 @@ class Ppa:
         self.constellation = Constellations(self.canvas_size, self.count_vertices, self.count_polygons)
         self.fitness = Fitness(self.target_image_array, self.canvas_size)
         self.mutate = Mutations(self.canvas_size, self.count_polygons, self.count_vertices, self.max_population_size)
-        self.save = SaveResults(self.experiment_name, self.count_vertices, self.save_freq, os.path.basename(self.target_image.filename)[:-4])
+        self.save = SaveResults(self.experiment_name, self.count_vertices, self.save_freq, os.path.basename(self.target_image.filename)[:-4], "PPA")
 
     def run_ppa(self) -> Any:
         """ Main PPA logic """
@@ -69,7 +68,7 @@ class Ppa:
             self.fitness.compute_population_fitness(population)
 
             # 3. Sort population
-            sorted_population = sort.sort_population_by_fitness(population, self.max_population_size)
+            sorted_population = self.fitness.sort_population_by_fitness(population, self.max_population_size)
 
             average_fitness = stats.compute_average_fitness(sorted_population)
             average_mse = stats.compute_average_mse(sorted_population)
@@ -78,8 +77,12 @@ class Ppa:
             print(f"Average MSE: {average_mse}\n")
 
             if self.save_freq != 0 and iteration % self.save_freq == 0:
-                self.save.save_csv(iteration, average_fitness, average_mse)
-                self.save.save_images(iteration, sorted_population)
+                self.save.save_iteration(
+                    iteration=iteration,
+                    average_mse=average_mse,
+                    population=sorted_population,
+                    average_fitness=average_fitness
+                )
 
             # 4. Create offsprings
             for count, individual in enumerate(sorted_population):

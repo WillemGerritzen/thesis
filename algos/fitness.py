@@ -21,12 +21,39 @@ class Fitness:
 
         self._compute_mse_for_population(population)
 
-        mse_max = max(population, key=lambda indiv: indiv.mse)
-        mse_min = min(population, key=lambda indiv: indiv.mse)
+        mse_max = max(population, key=lambda indiv: indiv.mse).mse
+        mse_min = min(population, key=lambda indiv: indiv.mse).mse
 
         for individual in population:
             if not individual.fitness:  # Avoid computing an already known value
-                individual.fitness = self._compute_fitness(mse_max.mse, mse_min.mse, individual.mse)
+                individual.fitness = self._compute_fitness(mse_max, mse_min, individual.mse)
+
+    def compute_mean_squared_error(self, individual_array: np.ndarray) -> float:
+        """
+        Computes the MSE given an array of predicted values (the individual being evaluated) and an array of true
+        values (the target image)
+        :param individual_array: The individual being evaluated as an array
+        :return: The mean squared error as a float
+        """
+
+        error = np.square(individual_array - self.target_image_array)
+        mean_error = np.divide(error, self.canvas_size[0] * self.canvas_size[1])
+        mse = np.sum(mean_error) * (255 ** 2)
+
+        return mse
+
+    def _compute_mse_for_population(self, population: List[Constellation]) -> None:
+        """
+        Iterates through a given population and computes the MSE for each individual
+        :param population: The population to iterate through
+        :return: A list consisting of the fitness value for each individual
+        """
+
+        for individual in population:
+            if not individual.mse:  # Avoid computing an already known value
+                individual.mse = self.compute_mean_squared_error(
+                    Utils.image_object_to_array(individual.individual_as_image)
+                )
 
     def _compute_fitness(self, mse_max: float, mse_min: float, mse_individual: float) -> float:
         """
@@ -43,31 +70,20 @@ class Fitness:
 
         return normalized_fitness
 
-    def _compute_mse_for_population(self, population: List[Constellation]) -> None:
+    @staticmethod
+    def sort_population_by_fitness(population: List[Constellation], max_population_size: int) -> List[Constellation]:
         """
-        Iterates through a given population and computes the MSE for each individual
-        :param population: The population to iterate through
-        :return: A list consisting of the fitness value for each individual
-        """
-
-        for individual in population:
-            if not individual.mse:  # Avoid computing an already known value
-                individual.mse = self.compute_mean_squared_error(
-                    Utils.image_object_to_array(individual.individual_as_image))
-
-    def compute_mean_squared_error(self, individual_array: np.ndarray) -> float:
-        """
-        Computes the MSE given an array of predicted values (the individual being evaluated) and an array of true
-        values (the target image)
-        :param individual_array: The individual being evaluated as an array
-        :return: The mean squared error as a float
+        Sort the population by fitness and delete the rest.
+        :param population: The population to sort.
+        :param max_population_size: The maximum population size.
+        :return: The sorted population.
         """
 
-        error = np.square(individual_array - self.target_image_array)
-        mean_error = np.divide(error, self.canvas_size[0] * self.canvas_size[1])
-        mse = np.sum(mean_error)
+        sorted_population = sorted(population, key=lambda individual: individual.fitness, reverse=True)
 
-        return float(mse)
+        del sorted_population[max_population_size:]
+
+        return sorted_population
 
     @staticmethod
     def _normalize_fitness(fitness: float) -> float:

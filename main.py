@@ -4,6 +4,7 @@ from PIL import Image
 
 from algos.hc import HillClimber
 from algos.ppa import Ppa
+from algos.sa import SimulatedAnnealing
 from utils import Utils
 
 TEST = False
@@ -64,8 +65,13 @@ if __name__ == '__main__':
                 **parameters
             )
 
-        # pool.apply_async(ppa.run_ppa())
+            sa = SimulatedAnnealing(
+                **parameters
+            )
+
+        pool.apply_async(ppa.run_ppa())
         pool.apply_async(hc.run_hc())
+        pool.apply_async(sa.run_sa())
 
     pool.close()
     pool.join()
