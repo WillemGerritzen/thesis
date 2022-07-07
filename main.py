@@ -17,7 +17,7 @@ parameters = {
     "target_image_str": "",
     "save_freq": 1000,
     "max_iterations": 10 ** 6,
-    "experiment_name": "First_experiment",
+    "experiment_name": "Run_",
     "target_image": Image
 }
 
@@ -49,29 +49,32 @@ if __name__ == '__main__':
     count_cpus = cpu_count()
     pool = Pool(processes=count_cpus)
 
-    for target_image in target_images:
-        parameters["target_image_str"] = target_image
-        setup()
+    for run in range(5):
+        parameters["experiment_name"] += str(run + 1)
 
-        with Image.open(parameters["target_image_str"]) as img:
-            parameters["canvas_size"] = img.size
-            parameters["target_image"] = img
+        for target_image in target_images:
+            parameters["target_image_str"] = target_image
+            setup()
 
-            ppa = Ppa(
-                **parameters
-            )
+            with Image.open(parameters["target_image_str"]) as img:
+                parameters["canvas_size"] = img.size
+                parameters["target_image"] = img
 
-            hc = HillClimber(
-                **parameters
-            )
+                ppa = Ppa(
+                    **parameters
+                )
 
-            sa = SimulatedAnnealing(
-                **parameters
-            )
+                hc = HillClimber(
+                    **parameters
+                )
 
-        pool.apply_async(ppa.run_ppa())
-        pool.apply_async(hc.run_hc())
-        pool.apply_async(sa.run_sa())
+                sa = SimulatedAnnealing(
+                    **parameters
+                )
 
-    pool.close()
-    pool.join()
+            pool.apply_async(ppa.run_ppa())
+            pool.apply_async(hc.run_hc())
+            pool.apply_async(sa.run_sa())
+
+        pool.close()
+        pool.join()

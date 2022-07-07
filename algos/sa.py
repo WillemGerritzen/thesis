@@ -53,24 +53,25 @@ class SimulatedAnnealing:
     def run_sa(self) -> Any:
         """ Main hillclimber logic """
 
-        print(f"Starting Simulated Annealing with {self.max_iterations} iterations on {self.target_image.filename}")
+        print(f"Run {self.experiment_name[-1]}: Starting Simulated Annealing with {self.max_iterations} iterations on {self.target_image.filename}")
 
         # 1. Generate a random polygon constellation
         individual = self.constellation.generate_random_polygon_constellation()
 
-        for iteration in range(self.max_iterations):
-            simulated_annealing = False
+        simulated_annealing = False
 
-            print("----------------------------------")
-            print(f"Starting iteration {iteration}")
-            print("----------------------------------")
+        for iteration in range(self.max_iterations):
 
             # 2. Compute MSE for the individual
             individual.mse = self.fitness.compute_mean_squared_error(
                 Utils.image_object_to_array(individual.individual_as_image)
             )
 
-            print(f"Current MSE: {individual.mse}")
+            if self.save_freq != 0 and iteration % self.save_freq == 0:
+                self.save.save_iteration(iteration=iteration, average_mse=individual.mse, population=[individual],
+                                         simulated_annealing=simulated_annealing)
+
+            simulated_annealing = False
 
             # 3. Randomly mutate the individual
             if not individual.count_mutations:
@@ -85,21 +86,9 @@ class SimulatedAnnealing:
             if offspring.mse < individual.mse:
                 individual = offspring
 
-                print(f"Found better MSE: {individual.mse}")
-
-                self.save.save_iteration(iteration=iteration, average_mse=individual.mse, population=[individual],
-                                         simulated_annealing=simulated_annealing)
-
             else:
                 mse_difference = offspring.mse - individual.mse
 
                 if random.random() < self.mutate.simulate_annealing(mse_difference, iteration):
                     individual = offspring
                     simulated_annealing = True
-
-                    print(f"Found better MSE by SA: {individual.mse}")
-
-                    self.save.save_iteration(iteration=iteration, average_mse=individual.mse, population=[individual],
-                                             simulated_annealing=simulated_annealing)
-
-

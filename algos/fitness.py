@@ -1,3 +1,4 @@
+import gc
 from typing import List, Tuple
 
 import numpy as np
@@ -38,7 +39,7 @@ class Fitness:
 
         error = np.square(individual_array - self.target_image_array)
         mean_error = np.divide(error, self.canvas_size[0] * self.canvas_size[1])
-        mse = np.sum(mean_error) * (255 ** 2)
+        mse = np.sum(mean_error) * 255
 
         return mse
 
@@ -81,7 +82,11 @@ class Fitness:
 
         sorted_population = sorted(population, key=lambda individual: individual.fitness, reverse=True)
 
+        # Memory management
         del sorted_population[max_population_size:]
+
+        if gc.get_count()[0] >= 1000:
+            gc.collect()
 
         return sorted_population
 

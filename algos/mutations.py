@@ -231,6 +231,9 @@ class Mutations:
 
         c = 255 ** 2 * 3
 
+        if iteration_number == 0:
+            return c / 1
+
         temperature = c / math.log(iteration_number + 1)
 
         return temperature

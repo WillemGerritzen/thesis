@@ -52,17 +52,13 @@ class Ppa:
     def run_ppa(self) -> Any:
         """ Main PPA logic """
 
-        print(f"Starting PPA with {self.max_iterations} iterations on {self.target_image.filename}")
+        print(f"Run {self.experiment_name[-1]}: Starting PPA with {self.max_iterations} iterations on {self.target_image.filename}")
 
         # 1. Generate random population of polygon constellations
         population = [self.constellation.generate_random_polygon_constellation() for _ in
                       range(self.max_population_size)]
 
         for iteration in range(self.max_iterations):
-
-            print("----------------------------------")
-            print(f"Starting iteration {iteration}")
-            print("----------------------------------")
 
             # 2. Compute fitness of the whole population
             self.fitness.compute_population_fitness(population)
@@ -72,9 +68,6 @@ class Ppa:
 
             average_fitness = stats.compute_average_fitness(sorted_population)
             average_mse = stats.compute_average_mse(sorted_population)
-
-            print(f"Average fitness: {average_fitness}")
-            print(f"Average MSE: {average_mse}\n")
 
             if self.save_freq != 0 and iteration % self.save_freq == 0:
                 self.save.save_iteration(
