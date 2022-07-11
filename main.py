@@ -23,11 +23,10 @@ parameters = {
 
 
 def setup() -> None:
-
     if TEST:
         parameters["experiment_name"] = "Test"
         parameters["max_iterations"] = 1
-        parameters["save_frequency"] = 1
+        parameters["save_freq"] = 1
 
     utils = Utils(
         parameters["canvas_size"],
@@ -50,7 +49,8 @@ if __name__ == '__main__':
     pool = Pool(processes=count_cpus)
 
     for run in range(5):
-        parameters["experiment_name"] += str(run + 1)
+        run_as_str = str(run + 1)
+        parameters["experiment_name"] = run_as_str
 
         for target_image in target_images:
             parameters["target_image_str"] = target_image
@@ -76,5 +76,5 @@ if __name__ == '__main__':
             pool.apply_async(hc.run_hc())
             pool.apply_async(sa.run_sa())
 
-        pool.close()
-        pool.join()
+    pool.close()
+    pool.join()

@@ -1,3 +1,4 @@
+import ctypes
 import os.path
 from typing import Tuple, Any
 
@@ -66,10 +67,10 @@ class Ppa:
             # 3. Sort population
             sorted_population = self.fitness.sort_population_by_fitness(population, self.max_population_size)
 
-            average_fitness = stats.compute_average_fitness(sorted_population)
-            average_mse = stats.compute_average_mse(sorted_population)
-
             if self.save_freq != 0 and iteration % self.save_freq == 0:
+                average_fitness = stats.compute_average_fitness(sorted_population)
+                average_mse = stats.compute_average_mse(sorted_population)
+
                 self.save.save_iteration(
                     iteration=iteration,
                     average_mse=average_mse,
@@ -89,3 +90,6 @@ class Ppa:
                     offspring = self.mutate.randomly_mutate(individual)
                     self.constellation.draw_mutated_individual(offspring)
                     population.append(offspring)
+
+            libc = ctypes.CDLL("libc.so.6")
+            libc.malloc_trim(0)
