@@ -72,9 +72,9 @@ if __name__ == '__main__':
                     **parameters
                 )
 
-            # pool.apply_async(ppa.run_ppa())
-            # pool.apply_async(hc.run_hc())
-            # pool.apply_async(sa.run_sa())
+            pool.apply(ppa.run_ppa())
+            pool.apply(hc.run_hc())
+            pool.apply(sa.run_sa())
 
     pool.close()
     pool.join()
