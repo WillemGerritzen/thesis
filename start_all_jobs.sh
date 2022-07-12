@@ -16,14 +16,14 @@ if [ -d "${IMG_DIR}" ]; then
 fi
 
 # Hillclimber
-sed -i 's/pool.apply(ppa.run_ppa())/#pool.apply(ppa.run_ppa())/' "${HOME}"/thesis/main.py
-sed -i 's/pool.apply(sa.run_sa())/#pool.apply(sa.run_sa())/' "${HOME}"/thesis/main.py
+sed -i 's/#pool.apply(ppa.run_ppa())/pool.apply(ppa.run_ppa())/' "${HOME}"/thesis/main.py
+sed -i 's/#pool.apply(sa.run_sa())/pool.apply(sa.run_sa())/' "${HOME}"/thesis/main.py
 
 sbatch job
 
 # Simulated Annealing
-sed -i 's/#pool.apply(sa.run_sa())/pool.apply(sa.run_sa())/' "${HOME}"/thesis/main.py
-sed -i 's/pool.apply(hc.run_hc())/#pool.apply(hc.run_hc())/' "${HOME}"/thesis/main.py
+sed -i 's/pool.apply(sa.run_sa())/#pool.apply(sa.run_sa())/' "${HOME}"/thesis/main.py
+sed -i 's/#pool.apply(hc.run_hc())/pool.apply(hc.run_hc())/' "${HOME}"/thesis/main.py
 
 sbatch job
 
@@ -34,6 +34,6 @@ sbatch job
 sbatch job
 
 # Reset
-sed -i 's/#pool.apply(hc.run_hc())/pool.apply(hc.run_hc())/' "${HOME}"/thesis/main.py
-sed -i 's/#pool.apply(ppa.run_ppa())/pool.apply(ppa.run_ppa())/' "${HOME}"/thesis/main.py
+sed -i 's/pool.apply(hc.run_hc())/#pool.apply(hc.run_hc())/' "${HOME}"/thesis/main.py
+sed -i 's/pool.apply(ppa.run_ppa())/#pool.apply(ppa.run_ppa())/' "${HOME}"/thesis/main.py
 
