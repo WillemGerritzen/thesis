@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 from typing import List, Optional
 
+import cv2
+
 from models.constellation import Constellation
 
 
@@ -24,36 +26,12 @@ class SaveResults:
         self.results_directory = f"results/{self.experiment_name}_{self.algo_name}"
         self.img_directory = f"img/temp/{self.experiment_name}_{self.target_image_name}_{self.algo_name}"
 
-    def save_iteration(
-            self,
-            *,
-            iteration: int,
-            average_mse: float,
-            population: List[Constellation],
-            average_fitness: Optional[float] = None,
-            simulated_annealing: Optional[bool] = None,
-    ) -> None:
-        """
-        Save the current iteration to a csv file and an image.
-        :param iteration: Which iteration is being saved.
-        :param average_fitness: Average fitness of the population.
-        :param average_mse: Average MSE of the population.
-        :param simulated_annealing: Whether the new individual is being generated using simulated annealing.
-        :param population: The population to be saved.
-        :return: None
-        """
-        average_fitness = str(average_fitness)
-        simulated_annealing = str(simulated_annealing)
-
-        self._save_csv(iteration, average_mse, average_fitness, simulated_annealing)
-        self._save_images(iteration, population)
-
-    def _save_csv(
+    def save_csv(
             self,
             iteration: int,
             average_mse: float,
-            average_fitness: str,
-            simulated_annealing: str
+            average_fitness: Optional[str] = None,
+            simulated_annealing: Optional[bool] = None
     ) -> None:
         """
         Save results to csv file.
@@ -66,7 +44,7 @@ class SaveResults:
 
         now = datetime.now().strftime("%H:%M:%S %d-%m-%Y")
 
-        row = [iteration, average_fitness, average_mse, simulated_annealing, now]
+        row = [iteration, str(average_fitness), average_mse, str(simulated_annealing), now]
 
         if not os.path.exists(self.results_directory):
             os.mkdir(self.results_directory)
@@ -82,7 +60,7 @@ class SaveResults:
                 writer = csv.writer(csv_file)
                 writer.writerow(row)
 
-    def _save_images(self, iteration: int, population: List[Constellation]) -> None:
+    def save_images(self, iteration: int, population: List[Constellation]) -> None:
         """
         Save the current population to an image.
         :param iteration: Which iteration is being saved.
@@ -94,7 +72,4 @@ class SaveResults:
             os.mkdir(self.img_directory)
 
         for individual in population:
-            individual.individual_as_image.save(
-                self.img_directory + f"/{iteration}_{population.index(individual)}.bmp",
-                "bmp"
-            )
+            cv2.imwrite(self.img_directory + f"/{iteration}_{population.index(individual)}.png", individual.individual_as_array)

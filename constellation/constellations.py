@@ -53,18 +53,3 @@ class Constellations:
         mutated_individual.individual_as_image = mutated_constellation
 
         return mutated_individual
-
-    @staticmethod
-    def copy_constellation(individual: Constellation) -> Constellation:
-        """
-        Copies an individual to a new constellation
-        :param individual: The individual to copy
-        :return: The copied individual
-        """
-
-        polygons = individual.individual_as_polygons
-
-        new_individual = Constellation(polygons)
-
-        return new_individual
-

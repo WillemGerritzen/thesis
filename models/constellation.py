@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+import numpy as np
 from PIL.Image import Image
 
 from models.polygon import Polygon
@@ -12,6 +13,7 @@ class Constellation(object):
         self.individual_as_polygons = individual_as_polygons
 
         self.individual_as_image: Optional[Image] = None
+        self.individual_as_array: Optional[np.ndarray] = None
 
         self.mse: Optional[float] = None
         self.fitness: Optional[float] = None

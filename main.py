@@ -42,7 +42,7 @@ def setup() -> None:
 
 
 if __name__ == '__main__':
-    target_images = ("Starry_Night", "Mona_Lisa", "Mondriaan", "The_Kiss", "Johann_Sebastian_Bach",
+    target_images = ("Mondriaan", "Starry_Night", "Mona_Lisa", "The_Kiss", "Johann_Sebastian_Bach",
                      "The_Persistence_of_Memory", "Convergence")
 
     count_cpus = cpu_count()
@@ -72,9 +72,9 @@ if __name__ == '__main__':
                     **parameters
                 )
 
-            pool.apply_async(ppa.run_ppa())
-            pool.apply_async(hc.run_hc())
-            pool.apply_async(sa.run_sa())
+            # pool.apply_async(ppa.run_ppa())
+            # pool.apply_async(hc.run_hc())
+            # pool.apply_async(sa.run_sa())
 
     pool.close()
     pool.join()

@@ -1,4 +1,3 @@
-import ctypes
 import os.path
 from typing import Tuple, Any
 
@@ -90,6 +89,3 @@ class Ppa:
                     offspring = self.mutate.randomly_mutate(individual)
                     self.constellation.draw_mutated_individual(offspring)
                     population.append(offspring)
-
-            libc = ctypes.CDLL("libc.so.6")
-            libc.malloc_trim(0)

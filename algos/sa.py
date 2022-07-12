@@ -2,6 +2,7 @@ import os
 import random
 from typing import Tuple, Any
 
+import cv2
 from PIL.Image import Image
 
 from algos.fitness import Fitness
@@ -53,42 +54,49 @@ class SimulatedAnnealing:
     def run_sa(self) -> Any:
         """ Main hillclimber logic """
 
-        print(f"Run {self.experiment_name[-1]}: Starting Simulated Annealing with {self.max_iterations} iterations on {self.target_image.filename}")
+        print(f"Run {self.experiment_name[-1]}: Starting Simulated Annealing with {self.max_iterations} "
+              f"iterations on {self.target_image.filename}")
 
         # 1. Generate a random polygon constellation
         individual = self.constellation.generate_random_polygon_constellation()
-
+        individual.count_mutations = 1
+        individual.individual_as_array = cv2.cvtColor(Utils.image_object_to_array(individual.individual_as_image),
+                                                      cv2.COLOR_BGR2RGB)
         simulated_annealing = False
 
         for iteration in range(self.max_iterations):
 
             # 2. Compute MSE for the individual
-            individual.mse = self.fitness.compute_mean_squared_error(
-                Utils.image_object_to_array(individual.individual_as_image)
-            )
+            individual.mse = self.fitness.compute_mean_squared_error(individual.individual_as_array)
 
             if self.save_freq != 0 and iteration % self.save_freq == 0:
-                self.save.save_iteration(iteration=iteration, average_mse=individual.mse, population=[individual],
-                                         simulated_annealing=simulated_annealing)
+                self.save.save_csv(
+                    iteration=iteration,
+                    average_mse=individual.mse,
+                    simulated_annealing=simulated_annealing,
+                )
 
             simulated_annealing = False
 
             # 3. Randomly mutate the individual
-            if not individual.count_mutations:
-                individual.count_mutations = 1
             offspring = self.mutate.randomly_mutate(individual)
             self.constellation.draw_mutated_individual(offspring)
+            new_array = cv2.cvtColor(Utils.image_object_to_array(offspring.individual_as_image), cv2.COLOR_BGR2RGB)
 
             # 4. Compute offspring MSE. If lower, offspring becomes new individual, else, compute chance of being discarded
-            offspring.mse = self.fitness.compute_mean_squared_error(
-                Utils.image_object_to_array(offspring.individual_as_image))
+            new_mse = self.fitness.compute_mean_squared_error(new_array)
+            print(new_mse, individual.mse)
 
-            if offspring.mse < individual.mse:
-                individual = offspring
+            if new_mse < individual.mse:
+                individual.mse = new_mse
+                individual.individual_as_array = new_array
+                self.save.save_images(iteration=iteration, population=[individual])
 
             else:
-                mse_difference = offspring.mse - individual.mse
+                mse_difference = new_mse - individual.mse
 
                 if random.random() < self.mutate.simulate_annealing(mse_difference, iteration):
-                    individual = offspring
+                    individual.mse = new_mse
+                    individual.individual_as_array = new_array
                     simulated_annealing = True
+                    self.save.save_images(iteration=iteration, population=[individual])

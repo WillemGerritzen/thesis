@@ -1,11 +1,11 @@
 import math
 import random
+from copy import deepcopy
 from functools import partial
 from typing import Tuple
 
 import numpy as np
 
-from constellation.constellations import Constellations
 from models.constellation import Constellation
 from models.polygon import Polygon
 
@@ -39,7 +39,7 @@ class Mutations:
         :return: The mutated individual
         """
 
-        new_individual = Constellations.copy_constellation(individual)
+        new_individual = deepcopy(individual)
 
         for _ in range(individual.count_mutations):
             random_mutation = np.random.choice(self.mutation_options)
@@ -229,7 +229,7 @@ class Mutations:
         :return: The new temperature
         """
 
-        c = 255 ** 2 * 3
+        c = 195075
 
         if iteration_number == 0:
             return c / 1
