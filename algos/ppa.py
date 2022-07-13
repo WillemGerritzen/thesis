@@ -69,7 +69,7 @@ class Ppa:
         for iteration in range(self.max_iterations):
 
             # 2. Compute fitness of the whole population
-            self.fitness.compute_population_fitness(sorted_population)
+            self.fitness.compute_population_fitness(sorted_population + temp_population)
 
             # 3. Sort population
             sorted_population = self.fitness.sort_population_by_fitness(sorted_population + temp_population)[:self.max_population_size]
@@ -85,7 +85,7 @@ class Ppa:
                     average_fitness=average_fitness,
                 )
 
-            if iteration == 0 or iteration == 2500000 or iteration == 5000000 or iteration == 7500000 or iteration == 10000000:
+            if iteration == 0 or iteration == 24999999 or iteration == 49999999 or iteration == 74999999:
                 self.save.save_images(iteration=iteration, population=sorted_population)
 
             # 4. Create offsprings
@@ -101,3 +101,6 @@ class Ppa:
                     self.constellation.draw_mutated_individual(offspring)
                     offspring.individual_as_array = cv2.cvtColor(Utils.image_object_to_array(offspring.individual_as_image), cv2.COLOR_BGR2RGB)
                     temp_population.append(offspring)
+
+            if iteration == 99999999:
+                self.save.save_images(iteration=iteration, population=sorted_population)

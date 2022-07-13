@@ -42,8 +42,14 @@ def setup() -> None:
 
 
 if __name__ == '__main__':
-    target_images = ("Mondriaan", "Starry_Night", "Mona_Lisa", "The_Kiss", "Johann_Sebastian_Bach",
-                     "The_Persistence_of_Memory", "Convergence") if not TEST else ["Mondriaan"]
+    target_images = (
+        "Mondriaan", "Starry_Night",
+        "Mona_Lisa",
+        "The_Kiss",
+        "Johann_Sebastian_Bach",
+        "The_Persistence_of_Memory",
+        "Convergence"
+    )if not TEST else ["Mondriaan"]
 
     parser = argparse.ArgumentParser(description='Approximate paintings with evolutionary algorithms')
     parser.add_argument('algo', type=str, help='Choose the algorithm to run', choices=['hc', 'ppa', 'sa'])
@@ -66,6 +72,7 @@ if __name__ == '__main__':
 
             module = importlib.import_module(f"algos.{args.algo}")
             algo = getattr(module, args.algo.capitalize())
+
             algo_to_run = algo(**parameters)
             pool.apply_async(getattr(algo_to_run, "run_" + args.algo)())
 
