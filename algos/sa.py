@@ -85,7 +85,6 @@ class SimulatedAnnealing:
 
             # 4. Compute offspring MSE. If lower, offspring becomes new individual, else, compute chance of being discarded
             new_mse = self.fitness.compute_mean_squared_error(new_array)
-            print(new_mse, individual.mse)
 
             if new_mse < individual.mse:
                 individual.mse = new_mse

@@ -8,6 +8,7 @@ from algos.sa import SimulatedAnnealing
 from utils import Utils
 
 TEST = False
+RUNS = 5 if not TEST else 1
 
 parameters = {
     "canvas_size": None,
@@ -25,7 +26,7 @@ parameters = {
 def setup() -> None:
     if TEST:
         parameters["experiment_name"] = "Test"
-        parameters["max_iterations"] = 1
+        parameters["max_iterations"] = 10
         parameters["save_freq"] = 1
 
     utils = Utils(
@@ -43,12 +44,12 @@ def setup() -> None:
 
 if __name__ == '__main__':
     target_images = ("Mondriaan", "Starry_Night", "Mona_Lisa", "The_Kiss", "Johann_Sebastian_Bach",
-                     "The_Persistence_of_Memory", "Convergence")
+                     "The_Persistence_of_Memory", "Convergence") if not TEST else ["Mondriaan"]
 
     count_cpus = cpu_count()
     pool = Pool(processes=count_cpus)
 
-    for run in range(5):
+    for run in range(RUNS):
         run_as_str = str(run + 1)
         parameters["experiment_name"] = run_as_str
 
@@ -72,9 +73,9 @@ if __name__ == '__main__':
                     **parameters
                 )
 
-            pool.apply(ppa.run_ppa())
-            pool.apply(hc.run_hc())
-            pool.apply(sa.run_sa())
+            pool.apply_async(ppa.run_ppa())
+            pool.apply_async(hc.run_hc())
+            pool.apply_async(sa.run_sa())
 
     pool.close()
     pool.join()

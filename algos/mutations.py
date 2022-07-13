@@ -2,7 +2,7 @@ import math
 import random
 from copy import deepcopy
 from functools import partial
-from typing import Tuple
+from typing import Tuple, Optional
 
 import numpy as np
 
@@ -111,26 +111,19 @@ class Mutations:
         :return: The list of Polygons with the two mutated Polygons
         """
 
-        polygon_1, polygon_2 = self._choose_two_random_polygons(individual)
+        random_vertex, polygon_2, vertex_1 = None, None, None
 
-        coordinates_to_transfer = random.choice(polygon_1.coordinates)
+        # Wrap the logic in a while loop to avoid ZeroDivisionError
+        while random_vertex is None:
+            polygon_1, polygon_2 = self._choose_two_random_polygons(individual)
 
-        polygon_1.coordinates.remove(coordinates_to_transfer)
+            vertex_to_delete = random.choice(polygon_1.coordinates)
+            polygon_1.coordinates.remove(vertex_to_delete)
 
-        # Randomly choose a first coordinate on Polygon 2
-        idx_first_coordinate_p2 = random.randint(0, len(polygon_2.coordinates) - 1)
+            vertex_1, vertex_2 = random.sample(polygon_2.coordinates, k=2)
+            random_vertex = self._find_random_point((vertex_1, vertex_2))
 
-        # Choose the next one in the index to create the vertex unless it is at the last index,
-        # in which case choose the first coordinate in the index
-        idx_second_coordinate_p2 = idx_first_coordinate_p2 + 1 if idx_first_coordinate_p2 != len(
-            polygon_2.coordinates) - 1 else 0
-
-        random_vertex_p2 = polygon_2.coordinates[idx_first_coordinate_p2], polygon_2.coordinates[
-            idx_second_coordinate_p2]
-
-        coordinates_to_transfer = self._find_midpoint(random_vertex_p2)
-
-        polygon_2.coordinates.insert(idx_first_coordinate_p2 + 1, coordinates_to_transfer)
+        polygon_2.coordinates.insert(polygon_2.coordinates.index(vertex_1), random_vertex)
 
         return individual
 
@@ -208,18 +201,27 @@ class Mutations:
         return random_polygon
 
     @staticmethod
-    def _find_midpoint(vertex: Tuple[Tuple[float, float], Tuple[float, float]]) -> Tuple[float, float]:
+    def _find_random_point(vertex: Tuple[Tuple[float, float], Tuple[float, float]]) -> Optional[Tuple[float, float]]:
         """
-        Utility function to find the midpoint on a vertex
-        :param vertex: The vertex to find the midpoint on
-        :return: The midpoint of the given vertex
+        Utility function to find a random point on a line between two vertices
+        :param vertex: The two vertices of the line
+        :return: The point on the line
         """
 
         x1, x2, y1, y2 = vertex[0][0], vertex[1][0], vertex[0][1], vertex[1][1]
 
-        x_midpoint, y_midpoint = ((x1 + x2) / 2, (y1 + y2) / 2)
+        random_x = random.uniform(x1, x2)
 
-        return x_midpoint, y_midpoint
+        try:
+            slope = (y2 - y1) / (x2 - x1)
+            intercept = (x1 * y2 - x2 * y1) / (x1 - x2)
+
+        except ZeroDivisionError:
+            return None
+
+        y_equivalent = slope * random_x + intercept
+
+        return random_x, y_equivalent
 
     @staticmethod
     def compute_temperature(iteration_number: int) -> float:
@@ -229,7 +231,7 @@ class Mutations:
         :return: The new temperature
         """
 
-        c = 195075
+        c = 195075  # Highest possible MSE
 
         if iteration_number == 0:
             return c / 1

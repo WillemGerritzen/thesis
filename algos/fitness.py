@@ -37,9 +37,9 @@ class Fitness:
         :return: The mean squared error as a float
         """
 
-        error = np.square(individual_array - self.target_image_array)
+        error = np.square(individual_array - self.target_image_array, dtype=np.float32)
         mean_error = np.divide(error, self.canvas_size[0] * self.canvas_size[1])
-        mse = np.sum(mean_error) * 100
+        mse = float(np.sum(mean_error))
 
         return mse
 

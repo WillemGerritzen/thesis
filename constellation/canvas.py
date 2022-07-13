@@ -1,5 +1,3 @@
-import os
-
 from PIL import Image
 
 
@@ -10,7 +8,7 @@ class Canvas:
 
     def generate_empty_canvas(self) -> Image:
         """
-        Generate a white canvas of 240 by 180 pixels in bitmap format
+        Generate a black canvas of 240 by 180 pixels in bitmap format
         :return: The empty canvas as an Image object
         """
 
