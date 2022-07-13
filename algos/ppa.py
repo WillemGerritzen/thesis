@@ -85,6 +85,9 @@ class Ppa:
                     average_fitness=average_fitness,
                 )
 
+            if iteration == 0 or iteration == 2500000 or iteration == 5000000 or iteration == 7500000 or iteration == 10000000:
+                self.save.save_images(iteration=iteration, population=sorted_population)
+
             # 4. Create offsprings
             for count, individual in enumerate(sorted_population):
                 if count > self.max_population_size - 1:

@@ -17,7 +17,7 @@ parameters = {
     "target_image_str": "",
     "save_freq": 1000,
     "max_iterations": 10 ** 6,
-    "experiment_name": "Run_",
+    "experiment_name": "",
     "target_image": Image
 }
 
