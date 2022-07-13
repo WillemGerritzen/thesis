@@ -8,8 +8,10 @@ IMG_DIR="${HOME}"/thesis/img/temp
 echo "Moving into job_logs directory"
 cd "${HOME}"/job_logs
 
-echo "Removing slurm logs"
-rm slurm-*
+if [ -f "slurm-*" ]; then
+    echo "Removing slurm logs"
+    rm slurm-*
+fi
 
 if [ -d "${RESULTS_DIR}" ]; then
     echo "Removing results directory"
