@@ -1,10 +1,12 @@
 import os.path
 from typing import Tuple, Any
 
+import cv2
 from PIL import Image
 
 from algos.save import SaveResults
 from constellation.constellations import Constellations
+from exception_handling import PopulationSizeError
 from statistics.cli import stats
 from utils import Utils
 from .fitness import Fitness
@@ -58,34 +60,41 @@ class Ppa:
         population = [self.constellation.generate_random_polygon_constellation() for _ in
                       range(self.max_population_size)]
 
+        sorted_population = population
+        temp_population = []
+
+        for individual in population:
+            individual.individual_as_array = cv2.cvtColor(Utils.image_object_to_array(individual.individual_as_image), cv2.COLOR_BGR2RGB)
+
         for iteration in range(self.max_iterations):
 
             # 2. Compute fitness of the whole population
-            self.fitness.compute_population_fitness(population)
+            self.fitness.compute_population_fitness(sorted_population)
 
             # 3. Sort population
-            sorted_population = self.fitness.sort_population_by_fitness(population, self.max_population_size)
+            sorted_population = self.fitness.sort_population_by_fitness(sorted_population + temp_population)[:self.max_population_size]
+            temp_population = []
 
             if self.save_freq != 0 and iteration % self.save_freq == 0:
                 average_fitness = stats.compute_average_fitness(sorted_population)
                 average_mse = stats.compute_average_mse(sorted_population)
 
-                self.save.save_iteration(
+                self.save.save_csv(
                     iteration=iteration,
                     average_mse=average_mse,
-                    population=sorted_population,
-                    average_fitness=average_fitness
+                    average_fitness=average_fitness,
                 )
 
             # 4. Create offsprings
             for count, individual in enumerate(sorted_population):
-                if not individual.count_offsprings:
-                    self.mutate.compute_offspring_count(individual)
+                if count > self.max_population_size - 1:
+                    raise PopulationSizeError(f"Too many iterations indicate recursive loop.")
 
-                if not individual.count_mutations:
-                    self.mutate.compute_mutation_count(individual)
+                count_offsprings = self.mutate.compute_offspring_count(individual)
+                count_mutations = self.mutate.compute_mutation_count(individual)
 
-                for _ in range(individual.count_offsprings):
-                    offspring = self.mutate.randomly_mutate(individual)
+                for _ in range(count_offsprings):
+                    offspring = self.mutate.randomly_mutate(individual, count_mutations)
                     self.constellation.draw_mutated_individual(offspring)
-                    population.append(offspring)
+                    offspring.individual_as_array = cv2.cvtColor(Utils.image_object_to_array(offspring.individual_as_image), cv2.COLOR_BGR2RGB)
+                    temp_population.append(offspring)

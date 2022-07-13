@@ -11,7 +11,7 @@ from constellation.constellations import Constellations
 from utils import Utils
 
 
-class HillClimber:
+class Hc:
     """
     1. Generate a random polygon constellation
     2. Compute MSE for the individual
@@ -58,7 +58,6 @@ class HillClimber:
 
         # 1. Generate a random polygon constellation
         individual = self.constellation.generate_random_polygon_constellation()
-        individual.count_mutations = 1
         individual.individual_as_array = cv2.cvtColor(Utils.image_object_to_array(individual.individual_as_image),
                                                       cv2.COLOR_BGR2RGB)
         for iteration in range(self.max_iterations):
@@ -73,7 +72,7 @@ class HillClimber:
                 )
 
             # 3. Randomly mutate the individual
-            offspring = self.mutate.randomly_mutate(individual)
+            offspring = self.mutate.randomly_mutate(individual, 1)
             self.constellation.draw_mutated_individual(offspring)
             new_array = cv2.cvtColor(Utils.image_object_to_array(offspring.individual_as_image), cv2.COLOR_BGR2RGB)
 

@@ -32,41 +32,42 @@ class Mutations:
             partial(self._change_color)
         ]
 
-    def randomly_mutate(self, individual: Constellation) -> Constellation:
+    def randomly_mutate(self, individual: Constellation, count_mutations: int) -> Constellation:
         """
         Randomly selects a mutation option and applies it to the individual
+        :param count_mutations: How many mutations to apply
         :param individual: The individual to be mutated
         :return: The mutated individual
         """
 
         new_individual = deepcopy(individual)
 
-        for _ in range(individual.count_mutations):
+        for _ in range(count_mutations):
             random_mutation = np.random.choice(self.mutation_options)
 
             new_individual = random_mutation(new_individual)
 
         return new_individual
 
-    def compute_offspring_count(self, individual: Constellation) -> None:
+    def compute_offspring_count(self, individual: Constellation) -> int:
         """
         Computes how many offsprings an individual should generate
         :param individual: The individual whose offspring count is to be computed
         :return: None
         """
 
-        individual.count_offsprings = math.ceil(
+        return math.ceil(
             self.max_population_size * individual.fitness * random.random()
         )
 
-    def compute_mutation_count(self, individual: Constellation) -> None:
+    def compute_mutation_count(self, individual: Constellation) -> int:
         """
         Computes how many mutations an individual should apply on each offspring
         :param individual: The individual whose mutation count is to be computed
         :return: None
         """
 
-        individual.count_mutations = math.ceil(
+        return math.ceil(
             (9 * self.count_vertices / 4
              ) * (
                     1 / self.max_population_size
