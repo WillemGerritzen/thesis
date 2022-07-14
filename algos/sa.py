@@ -2,7 +2,6 @@ import os
 import random
 from typing import Tuple, Any
 
-import cv2
 from PIL.Image import Image
 
 from algos.fitness import Fitness
@@ -57,11 +56,10 @@ class Sa:
         print(f"Run {self.experiment_name[-1]}: Starting Simulated Annealing with {self.max_iterations} "
               f"iterations on {self.target_image.filename}")
 
+        simulated_annealing = 0
+
         # 1. Generate a random polygon constellation
         individual = self.constellation.generate_random_polygon_constellation()
-        individual.individual_as_array = cv2.cvtColor(Utils.image_object_to_array(individual.individual_as_image),
-                                                      cv2.COLOR_BGR2RGB)
-        simulated_annealing = False
 
         for iteration in range(self.max_iterations):
 
@@ -75,26 +73,30 @@ class Sa:
                     simulated_annealing=simulated_annealing,
                 )
 
-            simulated_annealing = False
+            if iteration == 0 or iteration == self.max_iterations / 4 - 1 or iteration == self.max_iterations / 2 - 1 or iteration == (self.max_iterations / 4) * 3 - 1:
+                self.save.save_images(iteration=iteration, individual=individual)
 
             # 3. Randomly mutate the individual
             offspring = self.mutate.randomly_mutate(individual, 1)
-            self.constellation.draw_mutated_individual(offspring)
-            new_array = cv2.cvtColor(Utils.image_object_to_array(offspring.individual_as_image), cv2.COLOR_BGR2RGB)
 
             # 4. Compute offspring MSE. If lower, offspring becomes new individual, else, compute chance of being discarded
-            new_mse = self.fitness.compute_mean_squared_error(new_array)
+            offspring.mse = self.fitness.compute_mean_squared_error(offspring.individual_as_array)
 
-            if new_mse < individual.mse:
-                individual.mse = new_mse
-                individual.individual_as_array = new_array
-                self.save.save_images(iteration=iteration, population=[individual])
+            if offspring.mse < individual.mse:
+                individual = offspring
 
             else:
-                mse_difference = new_mse - individual.mse
+                mse_difference = offspring.mse - individual.mse
 
                 if random.random() < self.mutate.simulate_annealing(mse_difference, iteration):
-                    individual.mse = new_mse
-                    individual.individual_as_array = new_array
-                    simulated_annealing = True
-                    self.save.save_images(iteration=iteration, population=[individual])
+                    individual = offspring
+                    simulated_annealing += 1
+
+            # Last iteration save
+            if iteration == self.max_iterations - 1:
+                self.save.save_images(iteration=iteration, individual=individual)
+                self.save.save_csv(
+                    iteration=iteration,
+                    average_mse=individual.mse,
+                    simulated_annealing=simulated_annealing,
+                )

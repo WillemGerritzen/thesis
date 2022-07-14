@@ -4,6 +4,7 @@ from typing import List, Tuple
 import numpy as np
 
 from models.constellation import Constellation
+from utils import Utils
 
 
 class Fitness:
@@ -35,7 +36,7 @@ class Fitness:
         :return: The mean squared error as a float
         """
 
-        error = np.square(individual_array - self.target_image_array, dtype=np.float32)
+        error = np.square(individual_array.astype(np.float32) - self.target_image_array.astype(np.float32))
         mean_error = np.divide(error, self.canvas_size[0] * self.canvas_size[1])
         mse = float(np.sum(mean_error))
 
@@ -49,7 +50,7 @@ class Fitness:
         """
 
         for individual in population:
-            individual.mse = self.compute_mean_squared_error(individual.individual_as_array)
+            individual.mse = self.compute_mean_squared_error(Utils.image_object_to_array(individual.individual_as_image))
 
     def _compute_fitness(self, mse_max: float, mse_diff: float, mse_individual: float) -> float:
         """

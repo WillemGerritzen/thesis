@@ -1,12 +1,10 @@
 import os.path
 from typing import Tuple, Any
 
-import cv2
 from PIL import Image
 
 from algos.save import SaveResults
 from constellation.constellations import Constellations
-from exception_handling import PopulationSizeError
 from statistics.cli import stats
 from utils import Utils
 from .fitness import Fitness
@@ -49,35 +47,33 @@ class Ppa:
         self.constellation = Constellations(self.canvas_size, self.count_vertices, self.count_polygons)
         self.fitness = Fitness(self.target_image_array, self.canvas_size)
         self.mutate = Mutations(self.canvas_size, self.count_polygons, self.count_vertices, self.max_population_size)
-        self.save = SaveResults(self.experiment_name, self.count_vertices, self.save_freq, os.path.basename(self.target_image.filename)[:-4], "PPA")
+        self.save = SaveResults(self.experiment_name, self.count_vertices, self.save_freq,
+                                os.path.basename(self.target_image.filename)[:-4], "PPA")
 
     def run_ppa(self) -> Any:
         """ Main PPA logic """
 
-        print(f"Run {self.experiment_name[-1]}: Starting PPA with {self.max_iterations} iterations on {self.target_image.filename}")
+        print(
+            f"Run {self.experiment_name[-1]}: Starting PPA with {self.max_iterations} iterations on {self.target_image.filename}")
 
         # 1. Generate random population of polygon constellations
         population = [self.constellation.generate_random_polygon_constellation() for _ in
                       range(self.max_population_size)]
 
-        sorted_population = population
-        temp_population = []
-
-        for individual in population:
-            individual.individual_as_array = cv2.cvtColor(Utils.image_object_to_array(individual.individual_as_image), cv2.COLOR_BGR2RGB)
+        offsprings = []
 
         for iteration in range(self.max_iterations):
+            population += offsprings
 
             # 2. Compute fitness of the whole population
-            self.fitness.compute_population_fitness(sorted_population + temp_population)
+            self.fitness.compute_population_fitness(population)
 
-            # 3. Sort population
-            sorted_population = self.fitness.sort_population_by_fitness(sorted_population + temp_population)[:self.max_population_size]
-            temp_population = []
+            # 3. Sort population and discard the worst individuals
+            population = self.fitness.sort_population_by_fitness(population)[:self.max_population_size]
 
             if self.save_freq != 0 and iteration % self.save_freq == 0:
-                average_fitness = stats.compute_average_fitness(sorted_population)
-                average_mse = stats.compute_average_mse(sorted_population)
+                average_fitness = stats.compute_average_fitness(population)
+                average_mse = stats.compute_average_mse(population)
 
                 self.save.save_csv(
                     iteration=iteration,
@@ -85,22 +81,17 @@ class Ppa:
                     average_fitness=average_fitness,
                 )
 
-            if iteration == 0 or iteration == 24999999 or iteration == 49999999 or iteration == 74999999:
-                self.save.save_images(iteration=iteration, population=sorted_population)
+            if iteration == 0 or iteration == self.max_iterations / 4 - 1 or iteration == (self.max_iterations / 4) * 2 - 1 or iteration == (self.max_iterations / 4) * 3 - 1:
+                self.save.save_images(iteration=iteration, individual=population[0])
 
             # 4. Create offsprings
-            for count, individual in enumerate(sorted_population):
-                if count > self.max_population_size - 1:
-                    raise PopulationSizeError(f"Too many iterations indicate recursive loop.")
+            offsprings = self.mutate.generate_offsprings(population)
 
-                count_offsprings = self.mutate.compute_offspring_count(individual)
-                count_mutations = self.mutate.compute_mutation_count(individual)
-
-                for _ in range(count_offsprings):
-                    offspring = self.mutate.randomly_mutate(individual, count_mutations)
-                    self.constellation.draw_mutated_individual(offspring)
-                    offspring.individual_as_array = cv2.cvtColor(Utils.image_object_to_array(offspring.individual_as_image), cv2.COLOR_BGR2RGB)
-                    temp_population.append(offspring)
-
-            if iteration == 99999999:
-                self.save.save_images(iteration=iteration, population=sorted_population)
+            # Last iteration save
+            if iteration == self.max_iterations - 1:
+                self.save.save_images(iteration=iteration, individual=population[0])
+                self.save.save_csv(
+                    iteration=iteration,
+                    average_mse=stats.compute_average_mse(population),
+                    average_fitness=stats.compute_average_fitness(population),
+                )

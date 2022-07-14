@@ -49,7 +49,7 @@ if __name__ == '__main__':
         "Johann_Sebastian_Bach",
         "The_Persistence_of_Memory",
         "Convergence"
-    )if not TEST else ["Mondriaan"]
+    ) if not TEST else ["Mondriaan"]
 
     parser = argparse.ArgumentParser(description='Approximate paintings with evolutionary algorithms')
     parser.add_argument('algo', type=str, help='Choose the algorithm to run', choices=['hc', 'ppa', 'sa'])

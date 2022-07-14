@@ -110,6 +110,3 @@ class Utils:
 
         if 'results' not in os.listdir():
             os.mkdir('results')
-
-
-

@@ -4,6 +4,7 @@ from constellation.canvas import Canvas
 from constellation.draw import Draw
 from constellation.polygons import PolygonGenerator
 from models.constellation import Constellation
+from utils import Utils
 
 
 class Constellations:
@@ -31,6 +32,7 @@ class Constellations:
         constellation_as_image = draw.draw_polygons()
 
         constellation.individual_as_image = constellation_as_image
+        constellation.individual_as_array = Utils.image_object_to_array(constellation_as_image)
 
         return constellation
 
@@ -51,5 +53,6 @@ class Constellations:
         mutated_constellation = draw.draw_polygons()
 
         mutated_individual.individual_as_image = mutated_constellation
+        mutated_individual.individual_as_array = Utils.image_object_to_array(mutated_constellation)
 
         return mutated_individual

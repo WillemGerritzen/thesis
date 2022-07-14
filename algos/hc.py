@@ -1,7 +1,6 @@
 import os
 from typing import Tuple, Any
 
-import cv2
 from PIL.Image import Image
 
 from algos.fitness import Fitness
@@ -58,8 +57,7 @@ class Hc:
 
         # 1. Generate a random polygon constellation
         individual = self.constellation.generate_random_polygon_constellation()
-        individual.individual_as_array = cv2.cvtColor(Utils.image_object_to_array(individual.individual_as_image),
-                                                      cv2.COLOR_BGR2RGB)
+
         for iteration in range(self.max_iterations):
 
             # 2. Compute MSE for the individual
@@ -71,15 +69,22 @@ class Hc:
                     average_mse=individual.mse,
                 )
 
+            if iteration == 0 or iteration == self.max_iterations / 4 - 1 or iteration == self.max_iterations / 2 - 1 or iteration == (self.max_iterations / 4) * 3 - 1:
+                self.save.save_images(iteration=iteration, individual=individual)
+
             # 3. Randomly mutate the individual
             offspring = self.mutate.randomly_mutate(individual, 1)
-            self.constellation.draw_mutated_individual(offspring)
-            new_array = cv2.cvtColor(Utils.image_object_to_array(offspring.individual_as_image), cv2.COLOR_BGR2RGB)
 
-            # 4. Compute offspring MSE. If lower, offspring becomes new individual, else is discarded
-            new_mse = self.fitness.compute_mean_squared_error(new_array)
+            # 4. Compute offspring MSE. If lower, offspring becomes new individual, else, compute chance of being discarded
+            offspring.mse = self.fitness.compute_mean_squared_error(offspring.individual_as_array)
 
-            if new_mse < individual.mse:
-                individual.mse = new_mse
-                individual.individual_as_array = new_array
-                self.save.save_images(iteration=iteration, population=[individual])
+            if offspring.mse < individual.mse:
+                individual = offspring
+
+            # Last iteration save
+            if iteration == self.max_iterations - 1:
+                self.save.save_images(iteration=iteration, individual=individual)
+                self.save.save_csv(
+                    iteration=iteration,
+                    average_mse=individual.mse,
+                )

@@ -2,10 +2,11 @@ import math
 import random
 from copy import deepcopy
 from functools import partial
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 
 import numpy as np
 
+from constellation.constellations import Constellations
 from models.constellation import Constellation
 from models.polygon import Polygon
 
@@ -32,6 +33,26 @@ class Mutations:
             partial(self._change_color)
         ]
 
+        self.constellation = Constellations(self.canvas_size, self.count_vertices, self.count_polygons)
+
+    def generate_offsprings(self, population: List[Constellation]) -> List[Constellation]:
+        """
+        Generates the offsprings of the population
+        :param population: The population of Constellation objects
+        :return: The offsprings of the population
+        """
+
+        offsprings = []
+
+        for individual in population:
+            offspring_count = self.compute_offspring_count(individual)
+            mutation_count = self.compute_mutation_count(individual)
+
+            for _ in range(offspring_count):
+                offsprings.append(self.randomly_mutate(individual, mutation_count))
+
+        return offsprings
+
     def randomly_mutate(self, individual: Constellation, count_mutations: int) -> Constellation:
         """
         Randomly selects a mutation option and applies it to the individual
@@ -47,6 +68,8 @@ class Mutations:
 
             new_individual = random_mutation(new_individual)
 
+        self.constellation.draw_mutated_individual(new_individual)
+
         return new_individual
 
     def compute_offspring_count(self, individual: Constellation) -> int:
@@ -56,9 +79,7 @@ class Mutations:
         :return: None
         """
 
-        return math.ceil(
-            self.max_population_size * individual.fitness * random.random()
-        )
+        return math.ceil(self.max_population_size * individual.fitness * random.random())
 
     def compute_mutation_count(self, individual: Constellation) -> int:
         """
@@ -68,10 +89,7 @@ class Mutations:
         """
 
         return math.ceil(
-            (9 * self.count_vertices / 4
-             ) * (
-                    1 / self.max_population_size
-            ) * 1 - individual.fitness * random.random()
+            (9 * self.count_vertices / 4) * (1 / self.max_population_size) * 1 - individual.fitness * random.random()
         )
 
     def simulate_annealing(self, mse_diff: float, iteration_number: int) -> float:
@@ -84,7 +102,9 @@ class Mutations:
 
         temperature = self.compute_temperature(iteration_number)
 
-        return math.exp(-mse_diff / temperature)
+        probability = math.exp(-mse_diff / temperature)
+
+        return probability
 
     def _move_vertex(self, individual: Constellation) -> Constellation:
         """
@@ -121,7 +141,8 @@ class Mutations:
             vertex_to_delete = random.choice(polygon_1.coordinates)
             polygon_1.coordinates.remove(vertex_to_delete)
 
-            vertex_1, vertex_2 = random.sample(polygon_2.coordinates, k=2)
+            vertex_1, vertex_2 = self._find_random_vertex_and_adjacent_vertex(polygon_2.coordinates)
+
             random_vertex = self._find_random_point((vertex_1, vertex_2))
 
         polygon_2.coordinates.insert(polygon_2.coordinates.index(vertex_1), random_vertex)
@@ -232,7 +253,7 @@ class Mutations:
         :return: The new temperature
         """
 
-        c = 195075  # Highest possible MSE
+        c = 1
 
         if iteration_number == 0:
             return c / 1
@@ -240,3 +261,21 @@ class Mutations:
         temperature = c / math.log(iteration_number + 1)
 
         return temperature
+
+    @staticmethod
+    def _find_random_vertex_and_adjacent_vertex(
+            polygon_coordinates: List[Tuple[float, float]]
+    ) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+        vertex_1 = random.choice(polygon_coordinates)
+        adjacent_vertex_idx = random.choice([1, -1])
+
+        try:
+            vertex_2 = polygon_coordinates[polygon_coordinates.index(vertex_1) + adjacent_vertex_idx]
+
+        except IndexError:
+            if adjacent_vertex_idx == 1:
+                vertex_2 = polygon_coordinates[0]
+            else:
+                vertex_2 = polygon_coordinates[-1]
+
+        return vertex_1, vertex_2

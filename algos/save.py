@@ -1,9 +1,7 @@
 import csv
 import os
 from datetime import datetime
-from typing import List, Optional
-
-import cv2
+from typing import Optional
 
 from models.constellation import Constellation
 
@@ -31,7 +29,7 @@ class SaveResults:
             iteration: int,
             average_mse: float,
             average_fitness: Optional[str] = None,
-            simulated_annealing: Optional[bool] = None
+            simulated_annealing: Optional[int] = None
     ) -> None:
         """
         Save results to csv file.
@@ -60,16 +58,15 @@ class SaveResults:
                 writer = csv.writer(csv_file)
                 writer.writerow(row)
 
-    def save_images(self, iteration: int, population: List[Constellation]) -> None:
+    def save_images(self, iteration: int, individual: Constellation) -> None:
         """
         Save the current population to an image.
         :param iteration: Which iteration is being saved.
-        :param population: The population to be saved.
+        :param individual: The individual to be saved.
         :return: None
         """
 
         if not os.path.exists(self.img_directory):
             os.mkdir(self.img_directory)
 
-        for individual in population:
-            cv2.imwrite(self.img_directory + f"/{iteration}_{population.index(individual)}.png", individual.individual_as_array)
+        individual.individual_as_image.save(self.img_directory + f"/{iteration}.png", ' png')
