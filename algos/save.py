@@ -69,4 +69,4 @@ class SaveResults:
         if not os.path.exists(self.img_directory):
             os.mkdir(self.img_directory)
 
-        individual.individual_as_image.save(self.img_directory + f"/{iteration}.png", ' png')
+        individual.individual_as_image.save(self.img_directory + f"/{iteration}.png", 'png')
