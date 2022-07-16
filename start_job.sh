@@ -8,11 +8,6 @@ IMG_DIR="${HOME}"/thesis/img/temp
 echo "Moving into job_logs directory"
 cd "${HOME}"/job_logs
 
-if compgen -G "slurm-[0-9]*.out" > /dev/null; then
-    echo "Removing slurm logs"
-    rm slurm-*
-fi
-
 if [ -d "${RESULTS_DIR}" ]; then
     echo "Removing results directory"
     rm -rf "${RESULTS_DIR}"
@@ -24,7 +19,14 @@ if [ -d "${IMG_DIR}" ]; then
 fi
 
 for algo in "hc" "ppa" "sa"; do
-    sbatch job $algo
+  for run in {1..5}; do
+    if compgen -G "slurm-[0-9]*-$algo-$run.out" > /dev/null; then
+      echo "Removing slurm log for previous run of $algo"
+      rm "slurm-[0-9]*-$algo-$run.out"
+  fi
+    echo "Starting run ${run} for algorithm ${algo}"
+    sbatch job "$algo" "$run"
+  done
 done
 
 exit 0

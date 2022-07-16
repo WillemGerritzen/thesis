@@ -52,7 +52,7 @@ class Hc:
     def run_hc(self) -> Any:
         """ Main hillclimber logic """
 
-        print(f"Run {self.experiment_name[-1]}: Starting Hillclimber with {self.max_iterations} "
+        print(f"Run {self.experiment_name}: Starting Hillclimber with {self.max_iterations} "
               f"iterations on {self.target_image.filename}")
 
         # 1. Generate a random polygon constellation

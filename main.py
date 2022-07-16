@@ -43,7 +43,8 @@ def setup() -> None:
 
 if __name__ == '__main__':
     target_images = (
-        "Mondriaan", "Starry_Night",
+        "Mondriaan",
+        "Starry_Night",
         "Mona_Lisa",
         "The_Kiss",
         "Johann_Sebastian_Bach",
@@ -53,28 +54,27 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Approximate paintings with evolutionary algorithms')
     parser.add_argument('algo', type=str, help='Choose the algorithm to run', choices=['hc', 'ppa', 'sa'])
+    parser.add_argument('run', type=int, help='Which run this is', choices=range(1, RUNS + 1))
     args = parser.parse_args()
 
     count_cpus = cpu_count()
     pool = Pool(processes=count_cpus)
 
-    for run in range(RUNS):
-        run_as_str = str(run + 1)
-        parameters["experiment_name"] = run_as_str
+    parameters["experiment_name"] = str(args.run)
 
-        for target_image in target_images:
-            parameters["target_image_str"] = target_image
-            setup()
+    for target_image in target_images:
+        parameters["target_image_str"] = target_image
+        setup()
 
-            with Image.open(parameters["target_image_str"]) as img:
-                parameters["canvas_size"] = img.size
-                parameters["target_image"] = img
+        with Image.open(parameters["target_image_str"]) as img:
+            parameters["canvas_size"] = img.size
+            parameters["target_image"] = img
 
-            module = importlib.import_module(f"algos.{args.algo}")
-            algo = getattr(module, args.algo.capitalize())
+        module = importlib.import_module(f"algos.{args.algo}")
+        algo = getattr(module, args.algo.capitalize())
 
-            algo_to_run = algo(**parameters)
-            pool.apply_async(getattr(algo_to_run, "run_" + args.algo)())
+        algo_to_run = algo(**parameters)
+        pool.apply_async(getattr(algo_to_run, "run_" + args.algo)())
 
     pool.close()
     pool.join()
