@@ -6,7 +6,7 @@ from typing import Tuple, Optional, List
 
 import numpy as np
 
-from constellation.constellations import Constellations
+from core.constellation.constellations import Constellations
 from models.constellation import Constellation
 from models.polygon import Polygon
 

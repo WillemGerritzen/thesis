@@ -225,4 +225,4 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-!/img/target/Convergence.bmp
+!/target/convergence.bmp

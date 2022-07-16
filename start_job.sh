@@ -2,30 +2,25 @@
 
 set -e
 
-RESULTS_DIR="${HOME}"/thesis/results
-IMG_DIR="${HOME}"/thesis/img/temp
+DUMP_DIR="${HOME}"/Documents/Github/thesis/dump
 
 echo "Moving into job_logs directory"
 cd "${HOME}"/job_logs
 
-if [ -d "${RESULTS_DIR}" ]; then
+if [ "$1" != "-r" ]; then
+  if [ -d "${DUMP_DIR}" ]; then
+    read -p "Dump directory already exists. Do you want to delete it? [y/N] " -r
     echo "Removing results directory"
-    rm -rf "${RESULTS_DIR}"
-fi
-
-if [ -d "${IMG_DIR}" ]; then
-    echo "Removing image directory"
-    rm -rf "${IMG_DIR}"
-fi
-
-for algo in "hc" "ppa" "sa"; do
-  for run in {1..5}; do
-    if compgen -G "slurm-[0-9]*-$algo-$run.out" > /dev/null; then
-      echo "Removing slurm log for previous run of $algo"
-      rm "slurm-[0-9]*-$algo-$run.out"
+    rm -rf "${DUMP_DIR}"
   fi
-    echo "Starting run ${run} for algorithm ${algo}"
-    sbatch job "$algo" "$run"
+fi
+
+for algo in "ppa"; do
+  for run in {1..5}; do
+    for image in "mondriaan" "starry_night" "mona_lisa" "the_kiss" "bach" "the_persistence_of_memory" "convergence"; do
+      echo "Starting run ${run} for algorithm ${algo}"
+      sbatch job -J "$(date +"T")_${run}_${algo}_${image}" "$algo" "$run" "$image"
+    done
   done
 done
 

@@ -1,10 +1,10 @@
 from typing import Tuple
 
-from constellation.canvas import Canvas
-from constellation.draw import Draw
-from constellation.polygons import PolygonGenerator
+from core.constellation.canvas import Canvas
+from core.constellation.draw import Draw
+from core.constellation.polygons import PolygonGenerator
+from core.utils import Utils
 from models.constellation import Constellation
-from utils import Utils
 
 
 class Constellations:

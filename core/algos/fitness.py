@@ -3,8 +3,8 @@ from typing import List, Tuple
 
 import numpy as np
 
+from core.utils import Utils
 from models.constellation import Constellation
-from utils import Utils
 
 
 class Fitness:
