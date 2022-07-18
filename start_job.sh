@@ -2,8 +2,6 @@
 
 set -e
 
-DUMP_DIR="${HOME}"/Documents/Github/thesis/dump
-
 echo "Moving into job_logs directory"
 cd "${HOME}"/job_logs
 
