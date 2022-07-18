@@ -253,7 +253,7 @@ class Mutations:
         :return: The new temperature
         """
 
-        c = 1
+        c = 195075
 
         if iteration_number == 0:
             return c / 1

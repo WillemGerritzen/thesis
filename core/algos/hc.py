@@ -49,7 +49,7 @@ class Hc:
         self.mutate = Mutations(self.canvas_size, self.count_polygons, self.count_vertices,
                                 self.max_population_size)
         self.save = SaveResults(self.run_number, self.count_vertices, self.save_freq,
-                                os.path.basename(self.target_image.filename)[:-4], "HillClimber")
+                                os.path.basename(self.target_image.filename)[:-4], self.algo)
 
     def run_hc(self) -> Any:
         """ Main hillclimber logic """

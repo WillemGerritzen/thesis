@@ -50,7 +50,7 @@ class Sa:
         self.mutate = Mutations(self.canvas_size, self.count_polygons, self.count_vertices,
                                 self.max_population_size)
         self.save = SaveResults(self.run_number, self.count_vertices, self.save_freq,
-                                os.path.basename(self.target_image.filename)[:-4], "Simulated_Annealing")
+                                os.path.basename(self.target_image.filename)[:-4], self.algo)
 
     def run_sa(self) -> Any:
         """ Main hillclimber logic """
@@ -64,7 +64,6 @@ class Sa:
         individual = self.constellation.generate_random_polygon_constellation()
 
         for iteration in range(self.max_iterations):
-
             # 2. Compute MSE for the individual
             individual.mse = self.fitness.compute_mean_squared_error(individual.individual_as_array)
 
