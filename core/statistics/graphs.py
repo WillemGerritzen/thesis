@@ -5,6 +5,9 @@ import pandas as pd
 
 
 def graph_average_mse(dir__: str) -> None:
+    if not os.path.exists('results/fig/'):
+        os.mkdir('results/fig/')
+
     columns = ['Iteration', 'Average MSE']
     algo = dir__.split('/')[-1].split('_')[-1]
     pretty_algo = ""
@@ -36,7 +39,7 @@ def graph_average_mse(dir__: str) -> None:
 
 
 def average_runs(algo: str) -> None:
-    logs_dir = f'results/logs/'
+    logs_dir = f'results/log/'
     average_dir = logs_dir + f'average_{algo}/'
 
     if not os.path.exists(average_dir):
@@ -50,6 +53,9 @@ def average_runs(algo: str) -> None:
             continue
 
         for csv in os.listdir(logs_dir + dir_):
+            if dir_.split('_')[-1] != algo:
+                continue
+
             name = csv.lower().removeprefix("results_")
 
             if 'johann' in name:
