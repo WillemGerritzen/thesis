@@ -1,4 +1,6 @@
 import os.path
+import pickle
+from datetime import datetime, timedelta
 from typing import Tuple, Any
 
 from PIL import Image
@@ -54,20 +56,39 @@ class Ppa:
 
     def run_ppa(self) -> Any:
         """ Main PPA logic """
-        print(
-            f"Run {self.run_number}: Starting {self.algo} with {self.max_iterations} iterations on {self.target_image.filename[7:-4]}")
+        start_time = datetime.now()
 
-        # 1. Generate random population of polygon constellations (Size = M)
-        population = [self.constellation.generate_random_polygon_constellation() for _ in
-                      range(self.max_population_size)]
+        try:
+            population, count_generation = pickle.load(
+                open(f"dump/temp/{self.run_number}_{self.algo}_{self.target_image.filename[7:-4]}.pkl", "rb"))
+
+            print(
+                f"Run {self.run_number}: Continuing {self.algo} with {self.max_iterations - count_generation} generations left on {self.target_image.filename[7:-4]}")
+
+        except FileNotFoundError:
+            population = [self.constellation.generate_random_polygon_constellation() for _ in
+                          range(self.max_population_size)]
+            count_generation = len(population)
+
+            print(
+                f"Run {self.run_number}: Starting {self.algo} with {self.max_iterations} iterations on {self.target_image.filename[7:-4]}")
 
         offsprings = []
-        count_generation = len(population)
+        current_save = 1
 
         while count_generation < self.max_iterations:
             count_generation += len(offsprings)
             save_tracker = round(count_generation, -3)
+            save = save_tracker != current_save
             population += offsprings
+
+            diff = datetime.now() - start_time
+            if diff >= timedelta(hours=119):
+                pickle.dump((population, count_generation),
+                            open(f"dump/temp/{self.run_number}_{self.algo}_{self.target_image.filename[7:-4]}.pkl",
+                                 "wb+"))
+                print(f"Hit time limit with {count_generation} generations evaluated, saving...")
+                exit(0)
 
             # 2. Compute fitness of the whole population
             self.fitness.compute_population_fitness(population)
@@ -75,7 +96,8 @@ class Ppa:
             # 3. Sort population and discard the worst individuals
             population = self.fitness.sort_population_by_fitness(population)[:self.max_population_size]
 
-            if self.save_freq != 0 and save_tracker % self.save_freq == 0:
+            if self.save_freq != 0 and save:
+                current_save = save_tracker
                 average_fitness = stats.compute_average_fitness(population)
                 average_mse = stats.compute_average_mse(population)
 
