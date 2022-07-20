@@ -1,6 +1,4 @@
 import os.path
-import pickle
-from datetime import datetime, timedelta
 from typing import Tuple, Any
 
 from PIL import Image
@@ -56,34 +54,20 @@ class Ppa:
 
     def run_ppa(self) -> Any:
         """ Main PPA logic """
-        start_time = datetime.now()
+        print(
+            f"Run {self.run_number}: Starting {self.algo} with {self.max_iterations} iterations on {self.target_image.filename[7:-4]}")
 
-        try:
-            population, iterations = pickle.load(
-                open(f"dump/temp/{self.run_number}_{self.algo}_{self.target_image.filename[7:-4]}.pkl", "rb"))
-
-            print(
-                f"Run {self.run_number}: Continuing {self.algo} with {self.max_iterations - iterations} iterations left on {self.target_image.filename[7:-4]}")
-
-        except FileNotFoundError:
-            population = [self.constellation.generate_random_polygon_constellation() for _ in
-                          range(self.max_population_size)]
-            iterations = 0
-            print(
-                f"Run {self.run_number}: Starting {self.algo} with {self.max_iterations} iterations on {self.target_image.filename[7:-4]}")
+        # 1. Generate random population of polygon constellations (Size = M)
+        population = [self.constellation.generate_random_polygon_constellation() for _ in
+                      range(self.max_population_size)]
 
         offsprings = []
+        count_generation = len(population)
 
-        for iteration in range(iterations, self.max_iterations):
+        while count_generation < self.max_iterations:
+            count_generation += len(offsprings)
+            save_tracker = round(count_generation, -3)
             population += offsprings
-
-            diff = datetime.now() - start_time
-            if diff >= timedelta(hours=119):
-                pickle.dump((population, iteration),
-                            open(f"dump/temp/{self.run_number}_{self.algo}_{self.target_image.filename[7:-4]}.pkl",
-                                 "wb+"))
-                print("Hit time limit, saving...")
-                exit(0)
 
             # 2. Compute fitness of the whole population
             self.fitness.compute_population_fitness(population)
@@ -91,29 +75,29 @@ class Ppa:
             # 3. Sort population and discard the worst individuals
             population = self.fitness.sort_population_by_fitness(population)[:self.max_population_size]
 
-            if self.save_freq != 0 and iteration % self.save_freq == 0:
+            if self.save_freq != 0 and save_tracker % self.save_freq == 0:
                 average_fitness = stats.compute_average_fitness(population)
                 average_mse = stats.compute_average_mse(population)
 
                 self.save.save_csv(
-                    iteration=iteration,
+                    iteration=count_generation,
                     average_mse=average_mse,
                     average_fitness=average_fitness,
                     best_mse=population[0].mse,
                     best_fitness=population[0].fitness
                 )
 
-            if iteration == 0 or iteration == self.max_iterations / 4 - 1 or iteration == (self.max_iterations / 4) * 2 - 1 or iteration == (self.max_iterations / 4) * 3 - 1:
-                self.save.save_images(iteration=iteration, individual=population[0])
+            if save_tracker == 0 or save_tracker == self.max_iterations / 4 or save_tracker == (self.max_iterations / 4) * 2 or save_tracker == (self.max_iterations / 4) * 3:
+                self.save.save_images(iteration=count_generation, individual=population[0])
 
             # 4. Create offsprings
             offsprings = self.mutate.generate_offsprings(population)
 
-            # Last iteration save
-            if iteration == self.max_iterations:
-                self.save.save_images(iteration=iteration, individual=population[0])
+            # Last generation save
+            if count_generation >= self.max_iterations:
+                self.save.save_images(iteration=count_generation, individual=population[0])
                 self.save.save_csv(
-                    iteration=iteration,
+                    iteration=count_generation,
                     average_mse=stats.compute_average_mse(population),
                     average_fitness=stats.compute_average_fitness(population),
                     best_mse=population[0].mse,
