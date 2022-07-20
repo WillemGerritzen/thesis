@@ -135,15 +135,14 @@ class Mutations:
         random_vertex, polygon_2, vertex_1 = None, None, None
 
         # Wrap the logic in a while loop to avoid ZeroDivisionError
-        while random_vertex is None:
-            polygon_1, polygon_2 = self._choose_two_random_polygons(individual)
+        polygon_1, polygon_2 = self._choose_two_random_polygons(individual)
 
-            vertex_to_delete = random.choice(polygon_1.coordinates)
-            polygon_1.coordinates.remove(vertex_to_delete)
+        vertex_to_delete = random.choice(polygon_1.coordinates)
+        polygon_1.coordinates.remove(vertex_to_delete)
 
-            vertex_1, vertex_2 = self._find_random_vertex_and_adjacent_vertex(polygon_2.coordinates)
+        vertex_1, vertex_2 = self._find_random_vertex_and_adjacent_vertex(polygon_2.coordinates)
 
-            random_vertex = self._find_random_point((vertex_1, vertex_2))
+        random_vertex = self._find_random_point((vertex_1, vertex_2))
 
         polygon_2.coordinates.insert(polygon_2.coordinates.index(vertex_1), random_vertex)
 
