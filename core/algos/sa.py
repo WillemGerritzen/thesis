@@ -53,7 +53,7 @@ class Sa:
                                 os.path.basename(self.target_image.filename)[:-4], self.algo)
 
     def run_sa(self) -> Any:
-        """ Main hillclimber logic """
+        """ Main simulated annealing logic """
 
         print(f"Run {self.run_number[-1]}: Starting {self.algo} with {self.max_iterations} "
               f"iterations on {self.target_image.filename}")
