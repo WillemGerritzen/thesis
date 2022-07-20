@@ -79,5 +79,5 @@ def average_runs(algo: str) -> None:
 if __name__ == '__main__':
     for algo in ['hc', 'sa', 'ppa']:
         average_runs(algo)
-        graph_average_mse(f'results/logs/average_{algo}')
+        graph_average_mse(f'results/log/average_{algo}')
 

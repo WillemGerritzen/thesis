@@ -232,18 +232,17 @@ class Mutations:
 
         x1, x2, y1, y2 = vertex[0][0], vertex[1][0], vertex[0][1], vertex[1][1]
 
-        random_x = random.uniform(x1, x2)
-
-        try:
+        if x1 != x2:
+            new_x = random.uniform(x1, x2)
             slope = (y2 - y1) / (x2 - x1)
             intercept = (x1 * y2 - x2 * y1) / (x1 - x2)
+            new_y = slope * new_x + intercept
 
-        except ZeroDivisionError:
-            return None
+        else:
+            new_x = x1
+            new_y = random.uniform(y1, y2)
 
-        y_equivalent = slope * random_x + intercept
-
-        return random_x, y_equivalent
+        return new_x, new_y
 
     @staticmethod
     def compute_temperature(iteration_number: int) -> float:
