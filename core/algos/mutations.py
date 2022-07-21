@@ -19,12 +19,14 @@ class Mutations:
             canvas_size: Tuple[int, int],
             count_polygons: int,
             count_vertices: int,
-            max_population_size: int
+            max_population_size: int,
+            max_offspring_count: int
     ):
         self.canvas_size = canvas_size
         self.count_polygons = count_polygons
         self.count_vertices = count_vertices
         self.max_population_size = max_population_size
+        self.max_offspring_count = max_offspring_count
 
         self.mutation_options = [
             partial(self._move_vertex),
@@ -45,8 +47,8 @@ class Mutations:
         offsprings = []
 
         for individual in population:
-            offspring_count = self.compute_offspring_count(individual)
-            mutation_count = self.compute_mutation_count(individual)
+            offspring_count = self.compute_offspring_count(individual, self.max_offspring_count)
+            mutation_count = self.compute_mutation_count(individual, self.max_offspring_count)
 
             for _ in range(offspring_count):
                 offsprings.append(self.randomly_mutate(individual, mutation_count))
@@ -72,24 +74,16 @@ class Mutations:
 
         return new_individual
 
-    def compute_offspring_count(self, individual: Constellation) -> int:
-        """
-        Computes how many offsprings an individual should generate
-        :param individual: The individual whose offspring count is to be computed
-        :return: None
-        """
-
-        return math.ceil(self.max_population_size * individual.fitness * random.random())
-
-    def compute_mutation_count(self, individual: Constellation) -> int:
+    def compute_mutation_count(self, individual: Constellation, max_offspring_count: int) -> int:
         """
         Computes how many mutations an individual should apply on each offspring
+        :param max_offspring_count: Maximum amount of offsprings
         :param individual: The individual whose mutation count is to be computed
         :return: None
         """
 
         return math.ceil(
-            (9 * self.count_vertices / 4) * (1 / self.max_population_size) * 1 - individual.fitness * random.random()
+            (9 * self.count_vertices / 4) * (1 / max_offspring_count) * 1 - individual.fitness * random.random()
         )
 
     def simulate_annealing(self, mse_diff: float, iteration_number: int) -> float:
@@ -210,6 +204,34 @@ class Mutations:
         return new_x, new_y
 
     @staticmethod
+    def compute_offspring_count(individual: Constellation, max_offspring_count: int) -> int:
+        """
+        Computes how many offsprings an individual should generate
+        :param max_offspring_count: Maximum amount of offsprings
+        :param individual: The individual whose offspring count is to be computed
+        :return: None
+        """
+
+        return math.ceil(max_offspring_count * individual.fitness * random.random())
+
+    @staticmethod
+    def compute_temperature(iteration_number: int) -> float:
+        """
+        Utility function to compute the temperature based on the iteration number
+        :param iteration_number: The iteration number
+        :return: The new temperature
+        """
+
+        c = 195075
+
+        if iteration_number == 0:
+            return c / 1
+
+        temperature = c / math.log(iteration_number + 1)
+
+        return temperature
+
+    @staticmethod
     def _choose_random_polygon(individual: Constellation) -> Polygon:
         """
         Utility function to choose a random Polygon
@@ -242,23 +264,6 @@ class Mutations:
             new_y = random.uniform(y1, y2)
 
         return new_x, new_y
-
-    @staticmethod
-    def compute_temperature(iteration_number: int) -> float:
-        """
-        Utility function to compute the temperature based on the iteration number
-        :param iteration_number: The iteration number
-        :return: The new temperature
-        """
-
-        c = 195075
-
-        if iteration_number == 0:
-            return c / 1
-
-        temperature = c / math.log(iteration_number + 1)
-
-        return temperature
 
     @staticmethod
     def _find_random_vertex_and_adjacent_vertex(

@@ -17,7 +17,8 @@ parameters = {
     "max_iterations": 10 ** 6,
     "run_number": "",
     "target_image": Image,
-    "algo": ""
+    "algo": "",
+    "max_offspring_count": 5
 }
 
 

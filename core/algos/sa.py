@@ -31,7 +31,8 @@ class Sa:
             max_iterations: int,
             run_number: str,
             target_image_str: str,
-            algo: str
+            algo: str,
+            max_offspring_count: int,
     ) -> None:
         self.canvas_size = canvas_size
         self.count_polygons = count_polygons
@@ -44,11 +45,12 @@ class Sa:
         self.run_number = run_number
         self.target_image_str = target_image_str
         self.algo = algo
+        self.max_offspring_count = max_offspring_count
 
         self.constellation = Constellations(self.canvas_size, self.count_vertices, self.count_polygons)
         self.fitness = Fitness(self.target_image_array, self.canvas_size)
         self.mutate = Mutations(self.canvas_size, self.count_polygons, self.count_vertices,
-                                self.max_population_size)
+                                self.max_population_size, self.max_offspring_count)
         self.save = SaveResults(self.run_number, self.count_vertices, self.save_freq,
                                 os.path.basename(self.target_image.filename)[:-4], self.algo)
 
