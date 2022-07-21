@@ -67,7 +67,10 @@ class PolygonGenerator:
         for _ in range(remaining_vertices):
             random_polygon = random.choice(polygons)
             additional_vertex = self._generate_coordinate()
-            random_polygon.coordinates.append(additional_vertex)
+            if len(random_polygon.coordinates) < self.count_polygons * 3:
+                random_polygon.coordinates.append(additional_vertex)
+            else:
+                remaining_vertices += 1
 
         return polygons
 

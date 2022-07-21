@@ -11,7 +11,7 @@ parameters = {
     "canvas_size": None,
     "count_polygons": 0,  # Actual value is computed later
     "max_population_size": 30,
-    "count_vertices": 1000,
+    "count_vertices": 0,
     "target_image_str": "",
     "save_freq": 1000,
     "max_iterations": 10 ** 6,
@@ -23,13 +23,14 @@ parameters = {
 
 
 if __name__ == '__main__':
-    utils = Utils(parameters)
-
-    args = utils.parse_arguments()
+    args = Utils.parse_arguments()
 
     parameters["run_number"] = str(args.run)
     parameters["target_image_str"] = args.target_image
     parameters["algo"] = args.algo
+    parameters['count_vertices'] = args.vertices
+
+    utils = Utils(parameters)
     utils.setup()
 
     count_cpus = cpu_count()

@@ -253,14 +253,14 @@ class Mutations:
 
         x1, x2, y1, y2 = vertex[0][0], vertex[1][0], vertex[0][1], vertex[1][1]
 
-        if x1 != x2:
+        if x1 != x2:  # If the line is not vertical, choose a random x between x1 and x2 and find the corresponding y
             new_x = random.uniform(x1, x2)
             slope = (y2 - y1) / (x2 - x1)
             intercept = (x1 * y2 - x2 * y1) / (x1 - x2)
             new_y = slope * new_x + intercept
 
-        else:
-            new_x = x1
+        else:  # If the line is vertical, choose x and y at random
+            new_x = random.uniform(x1, x2)
             new_y = random.uniform(y1, y2)
 
         return new_x, new_y

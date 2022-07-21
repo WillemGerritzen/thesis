@@ -56,8 +56,8 @@ class Hc:
     def run_hc(self) -> Any:
         """ Main hillclimber logic """
 
-        print(f"Run {self.run_number}: Starting {self.algo} with {self.max_iterations} "
-              f"iterations on {self.target_image.filename}")
+        print(f"Run {self.run_number}: Starting {self.algo} with {self.count_vertices} "
+              f"vertices on {self.target_image.filename}")
 
         # 1. Generate a random polygon constellation
         individual = self.constellation.generate_random_polygon_constellation()

@@ -57,8 +57,8 @@ class Sa:
     def run_sa(self) -> Any:
         """ Main simulated annealing logic """
 
-        print(f"Run {self.run_number[-1]}: Starting {self.algo} with {self.max_iterations} "
-              f"iterations on {self.target_image.filename}")
+        print(f"Run {self.run_number[-1]}: Starting {self.algo} with {self.count_vertices} "
+              f"vertices on {self.target_image.filename}")
 
         simulated_annealing = 0
 

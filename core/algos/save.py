@@ -21,8 +21,8 @@ class SaveResults:
         self.save_freq = save_freq
         self.target_image_name = target_image_name
         self.algo_name = algo_name
-        self.results_directory = f"dump/log/{self.run_number}_{self.algo_name}/"
-        self.img_directory = f"dump/img/{self.run_number}_{self.target_image_name}_{self.algo_name}/"
+        self.results_directory = f"dump/log/{self.count_vertices}/{self.run_number}_{self.algo_name}/"
+        self.img_directory = f"dump/img/{self.count_vertices}/{self.run_number}_{self.target_image_name}_{self.algo_name}/"
 
     def save_csv(
             self,

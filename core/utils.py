@@ -57,16 +57,11 @@ class Utils:
 
         return array
 
-    @staticmethod
-    def check_directories() -> None:
+    def check_directories(self) -> None:
         """ Checks for the existence of given directories and creates them if they do not exist """
 
-        if 'dump' not in os.listdir():
-            os.mkdir('dump')
-
-        for dir_ in ['log', 'img', 'temp']:
-            if dir_ not in os.listdir('dump'):
-                os.mkdir('dump/' + dir_)
+        for dir_ in ['log', 'img']:
+            os.makedirs('dump/' + dir_ + '/' + str(self.count_vertices), exist_ok=True)
 
     @staticmethod
     def parse_arguments() -> Any:
@@ -85,6 +80,7 @@ class Utils:
                 "convergence"
             )
         )
+        parser.add_argument('vertices', type=int, help='How many vertices to use', choices=[20, 100, 300, 500, 700, 1000])
         args = parser.parse_args()
 
         return args
