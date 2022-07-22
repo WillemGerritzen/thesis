@@ -74,17 +74,6 @@ class Mutations:
 
         return new_individual
 
-    def _compute_mutation_count(self, individual: Constellation) -> int:
-        """
-        Computes how many mutations an individual should apply on each offspring
-        :param individual: The individual whose mutation count is to be computed
-        :return: None
-        """
-
-        return math.ceil(
-            (9 * self.count_vertices / 4) * (1 / self.max_offspring_count) * (1 - individual.fitness) * random.random()
-        )
-
     def simulate_annealing(self, mse_diff: float, iteration_number: int) -> float:
         """
         Simulates annealing by computing the probability of a mutation based on the MSE difference and the temperature
@@ -98,6 +87,24 @@ class Mutations:
         probability = math.exp(-mse_diff / temperature)
 
         return probability
+
+    def _compute_offspring_count(self, individual: Constellation) -> int:
+        """
+        Computes how many offsprings an individual should generate
+        :param individual: The individual whose offspring count is to be computed
+        :return: How many offsprings the individual should generate
+        """
+
+        return math.ceil(self.max_offspring_count * individual.fitness * random.random())
+
+    def _compute_mutation_count(self, individual: Constellation) -> int:
+        """
+        Computes how many mutations an individual should apply on each offspring
+        :param individual: The individual whose mutation count is to be computed
+        :return: How many mutations the individual should apply
+        """
+
+        return math.ceil((13 * self.count_vertices / 5) * (1 - individual.fitness) * random.random())
 
     def _move_vertex(self, individual: Constellation) -> Constellation:
         """
@@ -167,15 +174,6 @@ class Mutations:
         chosen_polygon.color[chosen_channel] = random_new_color
 
         return individual
-
-    def _compute_offspring_count(self, individual: Constellation) -> int:
-        """
-        Computes how many offsprings an individual should generate
-        :param individual: The individual whose offspring count is to be computed
-        :return: None
-        """
-
-        return math.ceil(self.max_offspring_count * individual.fitness * random.random())
 
     def _choose_two_random_polygons(self, individual: Constellation) -> Tuple[Polygon, Polygon]:
         """
