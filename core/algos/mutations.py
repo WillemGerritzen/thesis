@@ -47,8 +47,8 @@ class Mutations:
         offsprings = []
 
         for individual in population:
-            offspring_count = self.compute_offspring_count(individual, self.max_offspring_count)
-            mutation_count = self.compute_mutation_count(individual, self.max_offspring_count)
+            offspring_count = self._compute_offspring_count(individual)
+            mutation_count = self._compute_mutation_count(individual)
 
             for _ in range(offspring_count):
                 offsprings.append(self.randomly_mutate(individual, mutation_count))
@@ -74,16 +74,15 @@ class Mutations:
 
         return new_individual
 
-    def compute_mutation_count(self, individual: Constellation, max_offspring_count: int) -> int:
+    def _compute_mutation_count(self, individual: Constellation) -> int:
         """
         Computes how many mutations an individual should apply on each offspring
-        :param max_offspring_count: Maximum amount of offsprings
         :param individual: The individual whose mutation count is to be computed
         :return: None
         """
 
         return math.ceil(
-            (9 * self.count_vertices / 4) * (1 / max_offspring_count) * 1 - individual.fitness * random.random()
+            (9 * self.count_vertices / 4) * (1 / self.max_offspring_count) * (1 - individual.fitness) * random.random()
         )
 
     def simulate_annealing(self, mse_diff: float, iteration_number: int) -> float:
@@ -94,7 +93,7 @@ class Mutations:
         :return: The probability of a mutation
         """
 
-        temperature = self.compute_temperature(iteration_number)
+        temperature = self._compute_temperature(iteration_number)
 
         probability = math.exp(-mse_diff / temperature)
 
@@ -126,9 +125,6 @@ class Mutations:
         :return: The list of Polygons with the two mutated Polygons
         """
 
-        random_vertex, polygon_2, vertex_1 = None, None, None
-
-        # Wrap the logic in a while loop to avoid ZeroDivisionError
         polygon_1, polygon_2 = self._choose_two_random_polygons(individual)
 
         vertex_to_delete = random.choice(polygon_1.coordinates)
@@ -172,6 +168,15 @@ class Mutations:
 
         return individual
 
+    def _compute_offspring_count(self, individual: Constellation) -> int:
+        """
+        Computes how many offsprings an individual should generate
+        :param individual: The individual whose offspring count is to be computed
+        :return: None
+        """
+
+        return math.ceil(self.max_offspring_count * individual.fitness * random.random())
+
     def _choose_two_random_polygons(self, individual: Constellation) -> Tuple[Polygon, Polygon]:
         """
         Utility function randomly picking two Polygons with some added checks (can't be the same Polygon twice and one
@@ -204,18 +209,7 @@ class Mutations:
         return new_x, new_y
 
     @staticmethod
-    def compute_offspring_count(individual: Constellation, max_offspring_count: int) -> int:
-        """
-        Computes how many offsprings an individual should generate
-        :param max_offspring_count: Maximum amount of offsprings
-        :param individual: The individual whose offspring count is to be computed
-        :return: None
-        """
-
-        return math.ceil(max_offspring_count * individual.fitness * random.random())
-
-    @staticmethod
-    def compute_temperature(iteration_number: int) -> float:
+    def _compute_temperature(iteration_number: int) -> float:
         """
         Utility function to compute the temperature based on the iteration number
         :param iteration_number: The iteration number

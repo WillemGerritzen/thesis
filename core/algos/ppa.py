@@ -63,14 +63,15 @@ class Ppa:
             f"Run {self.run_number}: Starting {self.algo} with {self.count_vertices} vertices on {self.target_image.filename[7:-4]}")
 
         offsprings = []
-        current_save = 1
         count_generation = len(population)
+        base_csv_save = 1
+        base_image_save = 1
 
         while count_generation < self.max_iterations:
             count_generation += len(offsprings)
-            save_tracker = round(count_generation, -3)
-            save = save_tracker != current_save
             population += offsprings
+            csv_save = round(count_generation, -3)
+            image_save = round(count_generation, -5)
 
             # 2. Compute fitness of the whole population
             self.fitness.compute_population_fitness(population)
@@ -78,11 +79,11 @@ class Ppa:
             # 3. Sort population and discard the worst individuals
             population = self.fitness.sort_population_by_fitness(population)[:self.max_population_size]
 
-            if self.save_freq != 0 and save:
-                current_save = save_tracker
-                average_fitness = stats.compute_average_fitness(population)
-                average_mse = stats.compute_average_mse(population)
+            average_fitness = stats.compute_average_fitness(population)
+            average_mse = stats.compute_average_mse(population)
 
+            if base_csv_save != csv_save:
+                base_csv_save = csv_save
                 self.save.save_csv(
                     iteration=count_generation,
                     average_mse=average_mse,
@@ -91,7 +92,8 @@ class Ppa:
                     best_fitness=population[0].fitness
                 )
 
-            if save_tracker == 0 or save_tracker == self.max_iterations / 4 or save_tracker == (self.max_iterations / 4) * 2 or save_tracker == (self.max_iterations / 4) * 3:
+            if base_image_save != image_save:
+                base_image_save = image_save
                 self.save.save_images(iteration=count_generation, individual=population[0])
 
             # 4. Create offsprings
