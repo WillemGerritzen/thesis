@@ -28,6 +28,8 @@ class Mutations:
         self.max_population_size = max_population_size
         self.max_offspring_count = max_offspring_count
 
+        self.mutation_constant = 13 * count_vertices / 5
+
         self.mutation_options = [
             partial(self._move_vertex),
             partial(self._transfer_vertex),
@@ -104,7 +106,7 @@ class Mutations:
         :return: How many mutations the individual should apply
         """
 
-        return math.ceil((13 * self.count_vertices / 5) * (1 - individual.fitness) * random.random())
+        return math.ceil(self.mutation_constant * (1 - individual.fitness) * random.random())
 
     def _move_vertex(self, individual: Constellation) -> Constellation:
         """
@@ -251,7 +253,7 @@ class Mutations:
             intercept = (x1 * y2 - x2 * y1) / (x1 - x2)
             new_y = slope * new_x + intercept
 
-        else:  # If the line is vertical, choose x and y at random
+        else:  # If the line is vertical or horizontal, choose x and y at random
             new_x = random.uniform(x1, x2)
             new_y = random.uniform(y1, y2)
 
