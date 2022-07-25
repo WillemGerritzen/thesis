@@ -29,6 +29,7 @@ class Mutations:
         self.max_offspring_count = max_offspring_count
 
         self.mutation_constant = 13 * count_vertices / 5
+        self.max_vertices_per_polygon = (count_vertices // 4) + 3
 
         self.mutation_options = [
             partial(self._move_vertex),
@@ -129,12 +130,12 @@ class Mutations:
 
     def _transfer_vertex(self, individual: Constellation) -> Constellation:
         """
-        Moves a vertex to 'hide' it while keeping the count of vertices the same.
+        Moves a vertex to 'hide' it while keeping the count of vertices the same within the run
         :param individual: The list of candidate Polygons
         :return: The list of Polygons with the two mutated Polygons
         """
 
-        polygon_1, polygon_2 = self._choose_two_random_polygons(individual)
+        polygon_1, polygon_2 = self._choose_two_polygons(individual)
 
         vertex_to_delete = random.choice(polygon_1.coordinates)
         polygon_1.coordinates.remove(vertex_to_delete)
@@ -177,27 +178,6 @@ class Mutations:
 
         return individual
 
-    def _choose_two_random_polygons(self, individual: Constellation) -> Tuple[Polygon, Polygon]:
-        """
-        Utility function randomly picking two Polygons with some added checks (can't be the same Polygon twice and one
-        of the Polygons must have at least 4 vertices
-        :type individual: The list of Polygons to choose from
-        :return: A tuple with the two selected Polygons
-        """
-
-        polygon_checks = False
-        polygon_1 = []
-        polygon_2 = []
-
-        while not polygon_checks:
-            polygon_1 = self._choose_random_polygon(individual)
-            polygon_2 = self._choose_random_polygon(individual)
-
-            if polygon_1 != polygon_2 and len(polygon_1.coordinates) >= 4:
-                polygon_checks = True
-
-        return polygon_1, polygon_2
-
     def _choose_random_new_vertex(self) -> Tuple[int, int]:
         """
         Utility function to randomly pick a new vertex
@@ -207,6 +187,37 @@ class Mutations:
         new_x, new_y = random.randint(0, self.canvas_size[0]), random.randint(0, self.canvas_size[1])
 
         return new_x, new_y
+
+    def _choose_two_polygons(self, individual: Constellation) -> Tuple[Polygon, Polygon]:
+        """
+        Chooses two different polygons where p1 can't be a triangle and p2 can't have the max number of vertices.
+        Given this is the only place where vertices can move from one polygon to another, and that all polygons are
+        intinalized with at least 3 and never more than the max number of vertices, there is no risk of max vertices
+        count being exceeded.
+        :type individual: The list of Polygons to choose from
+        :return: A tuple with the two selected Polygons
+        """
+
+        available_polygons = individual.individual_as_polygons.copy()
+
+        p1 = random.choice([polygon for polygon in available_polygons if len(polygon.coordinates) > 3])
+        available_polygons.remove(p1)
+
+        p2 = random.choice([polygon for polygon in available_polygons if len(polygon.coordinates) < self.max_vertices_per_polygon])
+
+        return p1, p2
+
+    @staticmethod
+    def _choose_random_polygon(individual: Constellation) -> Polygon:
+        """
+        Utility function to choose a random Polygon
+        :param individual: The list of Polygons to choose from
+        :return: The selected Polygon
+        """
+
+        random_polygon = random.choice(individual.individual_as_polygons)
+
+        return random_polygon
 
     @staticmethod
     def _compute_temperature(iteration_number: int) -> float:
@@ -224,18 +235,6 @@ class Mutations:
         temperature = c / math.log(iteration_number + 1)
 
         return temperature
-
-    @staticmethod
-    def _choose_random_polygon(individual: Constellation) -> Polygon:
-        """
-        Utility function to choose a random Polygon
-        :param individual: The list of Polygons to choose from
-        :return: The selected Polygon
-        """
-
-        random_polygon = random.choice(individual.individual_as_polygons)
-
-        return random_polygon
 
     @staticmethod
     def _find_random_point(vertex: Tuple[Tuple[float, float], Tuple[float, float]]) -> Optional[Tuple[float, float]]:
