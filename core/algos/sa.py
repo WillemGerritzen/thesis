@@ -28,7 +28,7 @@ class Sa:
             max_population_size: int,
             count_vertices: int,
             save_freq: int,
-            max_iterations: int,
+            max_func_eval: int,
             run_number: str,
             target_image_str: str,
             algo: str,
@@ -41,7 +41,7 @@ class Sa:
         self.target_image = target_image
         self.target_image_array = Utils.bitmap_to_array(self.target_image.filename)
         self.save_freq = save_freq
-        self.max_iterations = max_iterations
+        self.max_func_eval = max_func_eval
         self.run_number = run_number
         self.target_image_str = target_image_str
         self.algo = algo
@@ -65,19 +65,20 @@ class Sa:
         # 1. Generate a random polygon constellation
         individual = self.constellation.generate_random_polygon_constellation()
 
-        for iteration in range(self.max_iterations):
+        for iteration in range(self.max_func_eval):
             # 2. Compute MSE for the individual
             individual.mse = self.fitness.compute_mean_squared_error(individual.individual_as_array)
 
             if self.save_freq != 0 and iteration % self.save_freq == 0:
+                print(f"Saving results at iteration {iteration}")
                 self.save.save_csv(
                     iteration=iteration,
                     average_mse=individual.mse,
-                    simulated_annealing=simulated_annealing,
                 )
-
-            if iteration == 0 or iteration == self.max_iterations / 4 - 1 or iteration == self.max_iterations / 2 - 1 or iteration == (self.max_iterations / 4) * 3 - 1:
                 self.save.save_images(iteration=iteration, individual=individual)
+
+            # if iteration == 0 or iteration == self.max_func_eval / 4 - 1 or iteration == self.max_func_eval / 2 - 1 or iteration == (self.max_func_eval / 4) * 3 - 1:
+            #     self.save.save_images(iteration=iteration, individual=individual)
 
             # 3. Randomly mutate the individual
             offspring = self.mutate.randomly_mutate(individual, 1)
@@ -96,7 +97,7 @@ class Sa:
                     simulated_annealing += 1
 
             # Last iteration save
-            if iteration == self.max_iterations - 1:
+            if iteration == self.max_func_eval - 1:
                 self.save.save_images(iteration=iteration, individual=individual)
                 self.save.save_csv(
                     iteration=iteration,

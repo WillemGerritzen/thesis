@@ -8,93 +8,121 @@ ANALYSIS_DIR = 'results/analysis'
 LOG_DIR = 'results/log'
 
 
-def graph_average_mse(dir__: str) -> None:
-    vertices = dir__.split('/')[2]
-
-    if not os.path.exists(f'{ANALYSIS_DIR}/fig/{vertices}'):
-        os.makedirs(f'{ANALYSIS_DIR}/fig/{vertices}', exist_ok=True)
-
+def graph_average_mse() -> None:
+    vertices = [20, 100, 300, 500, 700, 1000]
+    algos = ['hc', 'ppa', 'sa']
+    algo_mapping = {
+        'sa': {'title': 'Simulated annealing', 'ylim': (14000, 80000), 'yscale': 'linear'},
+        'hc': {'title': 'Hill climber', 'ylim': (50, 16000), 'yscale': 'log'},
+        'ppa': {'title': 'Plant propagation', 'ylim': (500, 15000), 'yscale': 'log'}
+    }
+    figsize_ratio = (2.5, 3)
     columns = ['Iteration', 'Average MSE']
-    algo = dir__.split('/')[-1].split('_')[-1]
-    pretty_algo = ""
 
-    if algo == 'sa':
-        pretty_algo = 'Simulated Annealing'
-    elif algo == 'hc':
-        pretty_algo = 'Hill Climber'
-    elif algo == 'ppa':
-        pretty_algo = 'Plant Propagation Algorithm'
+    title_size = 22
+    axis_label_size = 14
+    legend_size = 10
+    size_subplots_mult = 3.2
 
     plt.style.use('default')
+    fig = plt.figure(figsize=tuple([x * size_subplots_mult for x in figsize_ratio]), constrained_layout=True)
+    subfigs = fig.subfigures(3, 1)
+    fig.suptitle('Average MSE', fontsize=title_size, color='white')  # Creates space for the legends
+    fig.supxlabel('Function Evaluations', size=axis_label_size, weight='bold')
+    fig.supylabel('Average MSE', size=axis_label_size, weight='bold')
 
-    fig, ax = plt.subplots()
-    if algo != 'sa':
-        ax.set_yscale('log')
-    ax.set_xlabel(columns[0] + 's')
-    ax.set_ylabel(columns[1])
-    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: f"{int(x):,}"))
-    ax.set_title(f"{pretty_algo} - {vertices} Vertices")
+    for algo in algos:
+        axs = subfigs[algos.index(algo)].subplots(ncols=len(vertices), sharex=True, sharey=True)
+        subfigs[algos.index(algo)].supylabel(algo_mapping[algo]['title'])
 
-    for file in os.listdir(dir__):
-        df = pd.read_csv(dir__ + '/' + file, usecols=columns)
-        ax.plot(df[columns[0]], df[columns[1]], label=file.removesuffix('.csv').capitalize().replace('_', ' '))
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
+        for count_v, vertice in enumerate(vertices):
+            average_dir = f'{ANALYSIS_DIR}/{vertice}/average_mse_{algo}/'
 
-    legends = format_legends([file.removesuffix('.csv') for file in os.listdir(dir__)])
-    if algo == 'hc':
-        bbox_to_anchor = (0.95, 0.89)
-    elif algo == 'ppa':
-        bbox_to_anchor = (0.95, 0.84)
-    else:
-        bbox_to_anchor = (0.95, 0.95)
+            if not os.path.exists(f'{ANALYSIS_DIR}/fig/{vertice}'):
+                os.makedirs(f'{ANALYSIS_DIR}/fig/{vertice}', exist_ok=True)
 
-    fig.legend(legends, frameon=False, fontsize=8, loc=1, bbox_to_anchor=bbox_to_anchor)
+            for count_a, ax in enumerate(axs):
+                if count_a == count_v:
+                    ax.set_ylim(algo_mapping[algo]['ylim'])
+                    ax.set_yscale(algo_mapping[algo]['yscale'])
+
+                    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: format_number(x)))
+                    if ax.get_yscale() == 'linear':
+                        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: format_number(x)))
+
+                    if algos.index(algo) == 0:
+                        ax.set_title(f"{vertice} Vert.")
+
+                    ax.spines['top'].set_visible(False)
+                    ax.spines['right'].set_visible(False)
+
+                    if count_a == 0:
+                        pretty_legends = format_legends(
+                            ['bach', 'convergence', 'mona_lisa', 'mondriaan', 'starry_night', 'the_kiss',
+                             'the_persistence_of_memory'])
+                        fig.legend(pretty_legends, frameon=False, fontsize=legend_size, loc='center',
+                                   ncol=len(pretty_legends), columnspacing=1, bbox_to_anchor=(0.533, 0.99))
+
+                    for file in os.listdir(average_dir):
+                        df = pd.read_csv(average_dir + '/' + file, usecols=columns)
+                        ax.plot(df[columns[0]], df[columns[1]],
+                                label=file.removesuffix('.csv').capitalize().replace('_', ' '))
 
     plt.plot()
-    plt.savefig(f"{ANALYSIS_DIR}/fig/{vertices}/average_mse_{algo}.eps", bbox_inches='tight', format='eps')
-    # plt.show()
+    plt.savefig(f"{ANALYSIS_DIR}/fig/average_mse.png", bbox_inches='tight', format='png')
+    plt.show()
 
 
 def graph_best_mse() -> None:
-    csvs = [dir_ for dir_ in os.listdir(ANALYSIS_DIR) if dir_.endswith('.csv')]
-    count_csvs = len(csvs)
+    csvs = [dir_ for dir_ in os.listdir(ANALYSIS_DIR) if dir_.endswith('.csv') and 'best_mse' in dir_]
+    algos = ['hc', 'ppa', 'sa']
+    studies = ['Replication study', 'Original study']
+    algo_mapping = {
+        'sa': {'title': 'Simulated annealing', 'ylim': (14000, 80000), 'yscale': 'linear'},
+        'hc': {'title': 'Hill climber', 'ylim': (50, 16000), 'yscale': 'log'},
+        'ppa': {'title': 'Plant propagation', 'ylim': (500, 15000), 'yscale': 'log'}
+    }
+
+    title_size = 22
+    figsize_ratio = (2.5, 3)
+    size_subplots_mult = 3
+    legend_size = 10
 
     plt.style.use('default')
-    fig, axs = plt.subplots(ncols=count_csvs, figsize=(9, 3), tight_layout=True)
-    legends = []
+    fig = plt.figure(figsize=tuple([x * size_subplots_mult for x in figsize_ratio]), constrained_layout=True)
+    subfigs = fig.subfigures(3, 1)
+    fig.suptitle('Average MSE', fontsize=title_size, color='white')  # Creates space for the legends
+    fig.supylabel('Best MSE', weight='bold')
+    fig.supxlabel('Vertices', weight='bold')
 
-    for count, csv in enumerate(csvs):
-        df = pd.read_csv(f'{ANALYSIS_DIR}/{csv}', index_col=0)
+    for algo in algos:
+        axs = subfigs[algos.index(algo)].subplots(ncols=2, sharex=True, sharey=True)
+        subfigs[algos.index(algo)].supylabel(algo_mapping[algo]['title'])
 
-        algo = csv.removeprefix('best_mse_').removesuffix('.csv')
+        for count, ax in enumerate(axs):
+            csvs_avail = [csv for csv in csvs if algo in csv]
+            df = pd.read_csv(f'{ANALYSIS_DIR}/{csvs_avail[count]}', index_col=0)
 
-        if algo == 'sa':
-            pretty_algo = 'Simulated Annealing'
-            y_lower_lim = 0
-        elif algo == 'hc':
-            pretty_algo = 'Hillclimber'
-            y_lower_lim = 10
-        else:
-            pretty_algo = 'Plant Propagation'
-            y_lower_lim = 100
+            if (count == 0 and algos.index(algo) == 0) or (count == 1 and algos.index(algo) == 0):
+                ax.set_title(f'{studies[count]}')
 
-        if csvs.index(csv) == count_csvs - 1:
-            legends = df.columns
-        if algo != 'sa':
-            axs[count].set_yscale('log')
-        axs[count].set_title(f"{pretty_algo}")
-        axs[count].plot(df, marker='o', markersize=3)
-        axs[count].spines['top'].set_visible(False)
-        axs[count].spines['right'].set_visible(False)
-        axs[count].set_ylim(y_lower_lim, None)
+            if algo != 'sa':
+                ax.set_yscale('log')
+            ax.plot(df, marker='o', markersize=3)
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
 
-    fig.supylabel('Best MSE', x=0.01, y=0.22)
-    fig.supxlabel('Vertices', y=0.03, x=0.084)
-    fig.legend(format_legends(legends), loc='lower right', ncol=len(legends), frameon=False, columnspacing=0.5)
+            if ax.get_yscale() == 'linear':
+                ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: format_number(x)))
+
+            if count == 0 and algos.index(algo) == 0:
+                legends = format_legends(['bach', 'convergence', 'mona_lisa', 'mondriaan', 'starry_night', 'the_kiss',
+                                          'the_persistence_of_memory'])
+                fig.legend(format_legends(legends), fontsize=legend_size, loc='center', ncol=len(legends),
+                           frameon=False, columnspacing=0.5, bbox_to_anchor=(0.533, 0.99))
 
     plt.plot()
-    plt.savefig(f"{ANALYSIS_DIR}/fig/best_mse.eps", bbox_inches='tight', format='eps')
+    plt.savefig(f"{ANALYSIS_DIR}/fig/best_mse_comp.png", bbox_inches='tight', format='png')
     plt.show()
 
 
@@ -169,6 +197,148 @@ def find_best_mse() -> None:
         df.to_csv(f'{ANALYSIS_DIR}/best_mse_{algo}.csv', index_label='vertices')
 
 
+def find_avg_mse() -> None:
+    dict_ = {}
+
+    for vertices in os.listdir(LOG_DIR):
+        for dir_ in os.listdir(f'{LOG_DIR}/{vertices}'):
+            algo = dir_.split('_')[-1]
+            run = dir_.split('_')[0]
+
+            if algo not in dict_:
+                dict_[algo] = {}
+
+            if vertices not in dict_[algo]:
+                dict_[algo][vertices] = {}
+
+            for csv in os.listdir(f'{LOG_DIR}/{vertices}/{dir_}'):
+                name = csv.removeprefix("results_").removesuffix(".csv")
+                mse_col = 'Average MSE'
+
+                if name not in dict_[algo][vertices]:
+                    dict_[algo][vertices][name] = pd.read_csv(f'{LOG_DIR}/{vertices}/{dir_}/{csv}')[mse_col].iloc[-1]
+
+                else:
+                    new_value = pd.read_csv(f'{LOG_DIR}/{vertices}/{dir_}/{csv}')[mse_col].iloc[-1]
+                    dict_[algo][vertices][name] += new_value
+
+                    if run == '5':
+                        dict_[algo][vertices][name] /= 5
+                        dict_[algo][vertices][name] = str(int(dict_[algo][vertices][name]))
+
+    for algo in dict_:
+        df = pd.DataFrame(dict_[algo]).T
+        df = df.reindex(sorted(df.index, key=lambda x: int(x)))
+        df.to_csv(f'{ANALYSIS_DIR}/avg_mse_{algo}.csv', index_label='vertices')
+
+
+def find_avg_mse_other() -> None:
+    dict_ = {}
+
+    for file in os.listdir(f'{LOG_DIR}/other'):
+        algo = file.split('-')[0].lower()
+
+        if algo not in dict_:
+            dict_[algo] = {}
+
+        df = pd.read_csv(f'{LOG_DIR}/other/{file}')
+
+        for index, row in df.iterrows():
+            vertices = row['Vertices']
+            image = row['Painting']
+
+            if image == 'dali':
+                image = 'the_persistence_of_memory'
+            elif image == 'monalisa':
+                image = 'mona_lisa'
+            elif image == 'mondriaan2':
+                image = 'mondriaan'
+            elif image == 'pollock':
+                image = 'convergence'
+            elif image == 'starrynight':
+                image = 'starry_night'
+            elif image == 'kiss':
+                image = 'the_kiss'
+
+            if vertices not in dict_[algo]:
+                dict_[algo][vertices] = {}
+
+            if image not in dict_[algo][vertices]:
+                dict_[algo][vertices][image] = row['MSE']
+            else:
+                dict_[algo][vertices][image] += row['MSE']
+
+        for vertices in dict_[algo]:
+            for image in dict_[algo][vertices]:
+                dict_[algo][vertices][image] /= 5
+                dict_[algo][vertices][image] = str(int(dict_[algo][vertices][image]))
+
+    for algo in dict_:
+        df = pd.DataFrame(dict_[algo]).T
+        df = df.reindex(sorted(df.index, key=lambda x: int(x)))
+        if len(df.columns.values) == 6:
+            df = df[['bach', 'convergence', 'mona_lisa', 'mondriaan', 'starry_night',
+                    'the_persistence_of_memory']]
+        else:
+            df = df[['bach', 'convergence', 'mona_lisa', 'mondriaan', 'starry_night', 'the_kiss',
+                    'the_persistence_of_memory']]
+        df.to_csv(f'{ANALYSIS_DIR}/avg_mse_{algo}_other.csv', index_label='vertices')
+
+
+def find_best_mse_other() -> None:
+    dict_ = {}
+
+    for file in os.listdir(f'{LOG_DIR}/other'):
+        algo = file.split('-')[0].lower()
+
+        if algo not in dict_:
+            dict_[algo] = {}
+
+        df = pd.read_csv(f'{LOG_DIR}/other/{file}')
+
+        for index, row in df.iterrows():
+            vertices = row['Vertices']
+            image = row['Painting']
+
+            if image == 'dali':
+                image = 'the_persistence_of_memory'
+            elif image == 'monalisa':
+                image = 'mona_lisa'
+            elif image == 'mondriaan2':
+                image = 'mondriaan'
+            elif image == 'pollock':
+                image = 'convergence'
+            elif image == 'starrynight':
+                image = 'starry_night'
+            elif image == 'kiss':
+                image = 'the_kiss'
+
+            if vertices not in dict_[algo]:
+                dict_[algo][vertices] = {}
+
+            if image not in dict_[algo][vertices]:
+                dict_[algo][vertices][image] = row['MSE']
+            else:
+                new_mse = row['MSE']
+                if new_mse > dict_[algo][vertices][image]:
+                    dict_[algo][vertices][image] = new_mse
+
+        for vertices in dict_[algo]:
+            for image in dict_[algo][vertices]:
+                dict_[algo][vertices][image] = str(int(dict_[algo][vertices][image]))
+
+    for algo in dict_:
+        df = pd.DataFrame(dict_[algo]).T
+        df = df.reindex(sorted(df.index, key=lambda x: int(x)))
+        if len(df.columns.values) == 6:
+            df = df[['bach', 'convergence', 'mona_lisa', 'mondriaan', 'starry_night',
+                     'the_persistence_of_memory']]
+        else:
+            df = df[['bach', 'convergence', 'mona_lisa', 'mondriaan', 'starry_night', 'the_kiss',
+                     'the_persistence_of_memory']]
+        df.to_csv(f'{ANALYSIS_DIR}/best_mse_{algo}_other.csv', index_label='vertices')
+
+
 def format_legends(legends: List[str]) -> List[str]:
     pretty_legends = []
     for legend in legends:
@@ -194,12 +364,24 @@ def format_legends(legends: List[str]) -> List[str]:
     return pretty_legends
 
 
+def format_number(data_value: float) -> str:
+    if data_value == 0:
+        return '0'
+    if data_value >= 1000000:
+        formatter = '{:1.0f}M'.format(data_value * 0.000001)
+    else:
+        formatter = '{:1.0f}K'.format(data_value * 0.001)
+    return formatter
+
+
 if __name__ == '__main__':
     # find_best_mse()
-    graph_best_mse()
+    # graph_best_mse()
 
-    # for algo in ['sa', 'hc', 'ppa']:
-    #     # average_runs_mse(algo)
-    #     for vertices in [20, 100, 300, 500, 700, 1000]:
-    #         graph_average_mse(f'{ANALYSIS_DIR}/{vertices}/average_mse_{algo}')
+    # average_runs_mse(algo)
+    graph_average_mse()
 
+    # find_avg_mse()
+
+    # find_avg_mse_other()
+    # find_best_mse_other()

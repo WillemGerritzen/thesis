@@ -29,7 +29,7 @@ class Ppa:
             max_population_size: int,
             count_vertices: int,
             save_freq: int,
-            max_iterations: int,
+            max_func_eval: int,
             run_number: str,
             target_image_str: str,
             algo: str,
@@ -42,7 +42,7 @@ class Ppa:
         self.target_image = target_image
         self.target_image_array = Utils.bitmap_to_array(self.target_image.filename)
         self.save_freq = save_freq
-        self.max_iterations = max_iterations
+        self.max_func_eval = max_func_eval
         self.run_number = run_number
         self.target_image_str = target_image_str
         self.algo = algo
@@ -63,15 +63,15 @@ class Ppa:
             f"Run {self.run_number}: Starting {self.algo} with {self.count_vertices} vertices on {self.target_image.filename[7:-4]}")
 
         offsprings = []
-        count_generation = len(population)
+        count_func_eval = len(population)
         base_csv_save = 1
         base_image_save = 1
 
-        while count_generation < self.max_iterations:
-            count_generation += len(offsprings)
+        while count_func_eval < self.max_func_eval:
+            count_func_eval += len(offsprings)
             population += offsprings
-            csv_save = round(count_generation, -3)
-            image_save = round(count_generation, -5)
+            csv_save = round(count_func_eval, -3)
+            image_save = round(count_func_eval, -4)
 
             # 2. Compute fitness of the whole population
             self.fitness.compute_population_fitness(population)
@@ -85,7 +85,7 @@ class Ppa:
             if base_csv_save != csv_save:
                 base_csv_save = csv_save
                 self.save.save_csv(
-                    iteration=count_generation,
+                    iteration=count_func_eval,
                     average_mse=average_mse,
                     average_fitness=average_fitness,
                     best_mse=population[0].mse,
@@ -93,17 +93,18 @@ class Ppa:
                 )
 
             if base_image_save != image_save:
+                print(f"Iteration {count_func_eval}: Saving image")
                 base_image_save = image_save
-                self.save.save_images(iteration=count_generation, individual=population[0])
+                self.save.save_images(iteration=count_func_eval, individual=population[0])
 
             # 4. Create offsprings
             offsprings = self.mutate.generate_offsprings(population)
 
             # Last generation save
-            if count_generation >= self.max_iterations:
-                self.save.save_images(iteration=count_generation, individual=population[0])
+            if count_func_eval >= self.max_func_eval:
+                self.save.save_images(iteration=count_func_eval, individual=population[0])
                 self.save.save_csv(
-                    iteration=count_generation,
+                    iteration=count_func_eval,
                     average_mse=stats.compute_average_mse(population),
                     average_fitness=stats.compute_average_fitness(population),
                     best_mse=population[0].mse,

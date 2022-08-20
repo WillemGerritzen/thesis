@@ -1,7 +1,6 @@
 import math
 import random
 from copy import deepcopy
-from functools import partial
 from typing import Tuple, Optional, List
 
 import numpy as np
@@ -32,10 +31,10 @@ class Mutations:
         self.max_vertices_per_polygon = (count_vertices // 4) + 3
 
         self.mutation_options = [
-            partial(self._move_vertex),
-            partial(self._transfer_vertex),
-            partial(self._change_drawing_index),
-            partial(self._change_color)
+            self._move_vertex,
+            self._transfer_vertex,
+            self._change_drawing_index,
+            self._change_color
         ]
 
         self.constellation = Constellations(self.canvas_size, self.count_vertices, self.count_polygons)
