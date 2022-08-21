@@ -107,7 +107,11 @@ class Ppa:
                 self.save.save_images(iteration=count_func_eval, individual=population[0])
 
             # 4. Create offsprings
-            offsprings = self.mutate.generate_offsprings(population, mse_dict)
+            offsprings, mse_lst = self.mutate.generate_offsprings(population)
+
+            if self.ffa:
+                for mse in mse_lst:
+                    mse_dict[mse] = 1 if mse not in mse_dict else mse_dict[mse] + 1
 
             # Last generation save
             if count_func_eval >= self.max_func_eval:

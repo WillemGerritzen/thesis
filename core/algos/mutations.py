@@ -1,7 +1,7 @@
 import math
 import random
 from copy import deepcopy
-from typing import Tuple, Optional, List, Dict
+from typing import Tuple, Optional, List, Union
 
 import numpy as np
 
@@ -41,15 +41,15 @@ class Mutations:
 
         self.constellation = Constellations(self.canvas_size, self.count_vertices, self.count_polygons)
 
-    def generate_offsprings(self, population: List[Constellation], mse_dict: Dict) -> List[Constellation]:
+    def generate_offsprings(self, population: List[Constellation]) -> Union[List[Constellation], Tuple[List[Constellation], List[float]]]:
         """
         Generates the offsprings of the population
-        :param mse_dict: The MSE dictionary of the population
         :param population: The population of Constellation objects
         :return: The offsprings of the population
         """
 
         offsprings = []
+        mse_lst = []
 
         for individual in population:
             offspring_count = self._compute_offspring_count(individual)
@@ -60,9 +60,9 @@ class Mutations:
 
             if self.ffa:
                 for offspring in offsprings:
-                    mse_dict[offspring.mse] = 1 if offspring.mse not in mse_dict else mse_dict[offspring.mse] + 1
+                    mse_lst.append(offspring.mse)
 
-        return offsprings
+        return offsprings, mse_lst
 
     def randomly_mutate(self, individual: Constellation, count_mutations: int) -> Constellation:
         """
