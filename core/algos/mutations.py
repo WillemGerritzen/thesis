@@ -1,7 +1,7 @@
 import math
 import random
 from copy import deepcopy
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional, List, Dict
 
 import numpy as np
 
@@ -19,13 +19,15 @@ class Mutations:
             count_polygons: int,
             count_vertices: int,
             max_population_size: int,
-            max_offspring_count: int
+            max_offspring_count: int,
+            ffa: bool
     ):
         self.canvas_size = canvas_size
         self.count_polygons = count_polygons
         self.count_vertices = count_vertices
         self.max_population_size = max_population_size
         self.max_offspring_count = max_offspring_count
+        self.ffa = ffa
 
         self.mutation_constant = 13 * count_vertices / 5
         self.max_vertices_per_polygon = (count_vertices // 4) + 3
@@ -39,9 +41,10 @@ class Mutations:
 
         self.constellation = Constellations(self.canvas_size, self.count_vertices, self.count_polygons)
 
-    def generate_offsprings(self, population: List[Constellation]) -> List[Constellation]:
+    def generate_offsprings(self, population: List[Constellation], mse_dict: Dict) -> List[Constellation]:
         """
         Generates the offsprings of the population
+        :param mse_dict: The MSE dictionary of the population
         :param population: The population of Constellation objects
         :return: The offsprings of the population
         """
@@ -54,6 +57,10 @@ class Mutations:
 
             for _ in range(offspring_count):
                 offsprings.append(self.randomly_mutate(individual, mutation_count))
+
+            if self.ffa:
+                for offspring in offsprings:
+                    mse_dict[offspring.mse] = 1 if offspring.mse not in mse_dict else mse_dict[offspring.mse] + 1
 
         return offsprings
 
@@ -76,19 +83,20 @@ class Mutations:
 
         return new_individual
 
-    def simulate_annealing(self, mse_diff: float, iteration_number: int) -> float:
+    def simulate_annealing(self, mse_diff: float, iteration_number: int, current_temperature: float) -> Tuple[float, float]:
         """
         Simulates annealing by computing the probability of a mutation based on the MSE difference and the temperature
+        :param current_temperature: The current temperature of the annealing process
         :param mse_diff: The MSE difference between the current and the previous generation
         :param iteration_number: The current iteration number
         :return: The probability of a mutation
         """
 
-        temperature = self._compute_temperature(iteration_number)
+        temperature = self._compute_temperature(iteration_number, current_temperature)
 
         probability = math.exp(-mse_diff / temperature)
 
-        return probability
+        return probability, temperature
 
     def _compute_offspring_count(self, individual: Constellation) -> int:
         """
@@ -219,21 +227,21 @@ class Mutations:
         return random_polygon
 
     @staticmethod
-    def _compute_temperature(iteration_number: int) -> float:
+    def _compute_temperature(iteration_number: int, current_temp: float) -> float:
         """
         Utility function to compute the temperature based on the iteration number
         :param iteration_number: The iteration number
         :return: The new temperature
         """
 
-        c = 195075
+        # c = 195075
+        #
+        # if iteration_number == 0:
+        #     return c / 1
+        #
+        # temperature = c / math.log(iteration_number + 1)
 
-        if iteration_number == 0:
-            return c / 1
-
-        temperature = c / math.log(iteration_number + 1)
-
-        return temperature
+        return current_temp * 0.99999
 
     @staticmethod
     def _find_random_point(vertex: Tuple[Tuple[float, float], Tuple[float, float]]) -> Optional[Tuple[float, float]]:

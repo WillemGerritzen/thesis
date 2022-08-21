@@ -1,5 +1,5 @@
 import math
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 import numpy as np
 
@@ -50,7 +50,8 @@ class Fitness:
         """
 
         for individual in population:
-            individual.mse = self.compute_mean_squared_error(Utils.image_object_to_array(individual.individual_as_image))
+            individual.mse = self.compute_mean_squared_error(
+                Utils.image_object_to_array(individual.individual_as_image))
 
     def _compute_fitness(self, mse_max: float, mse_diff: float, mse_individual: float) -> float:
         """
@@ -90,3 +91,16 @@ class Fitness:
         normalized_fitness = 0.5 * (math.tanh(4 * fitness - 2) + 1)
 
         return normalized_fitness
+
+    @staticmethod
+    def sort_population_by_fitness_frequency(population: List[Constellation], mse_dict: Dict) -> List[Constellation]:
+        """
+        Sort the population by fitness frequency and delete the rest.
+        :param mse_dict: The dictionary of mean squared errors.
+        :param population: The population to sort.
+        :return: The sorted population.
+        """
+
+        sorted_population = sorted(population, key=lambda x: mse_dict[x.mse])
+
+        return sorted_population

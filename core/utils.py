@@ -81,6 +81,8 @@ class Utils:
             )
         )
         parser.add_argument('vertices', type=int, help='How many vertices to use', choices=[20, 100, 300, 500, 700, 1000])
+        parser.add_argument('--ffa', action='store_true')
+        parser.add_argument('--no-ffa', dest='feature', action='store_false')
         args = parser.parse_args()
 
         return args

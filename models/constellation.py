@@ -20,4 +20,3 @@ class Constellation(object):
 
     def __add__(self, other):
         return self.fitness + other.fitness
-

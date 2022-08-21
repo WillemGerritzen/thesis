@@ -13,12 +13,13 @@ parameters = {
     "max_population_size": 30,
     "count_vertices": 0,
     "target_image_str": "",
-    "save_freq": 10000,
-    "max_func_eval": 250000,
+    "save_freq": 1000,
+    "max_func_eval": 1000000,
     "run_number": "",
     "target_image": Image,
     "algo": "",
-    "max_offspring_count": 5
+    "max_offspring_count": 5,
+    "ffa": False
 }
 
 
@@ -29,6 +30,7 @@ if __name__ == '__main__':
     parameters["target_image_str"] = args.target_image
     parameters["algo"] = args.algo
     parameters['count_vertices'] = args.vertices
+    parameters['ffa'] = args.ffa
 
     utils = Utils(parameters)
     utils.setup()
