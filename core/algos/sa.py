@@ -52,7 +52,7 @@ class Sa:
         self.constellation = Constellations(self.canvas_size, self.count_vertices, self.count_polygons)
         self.fitness = Fitness(self.target_image_array, self.canvas_size)
         self.mutate = Mutations(self.canvas_size, self.count_polygons, self.count_vertices,
-                                self.max_population_size, self.max_offspring_count)
+                                self.max_population_size, self.max_offspring_count, self.ffa)
         self.save = SaveResults(self.run_number, self.count_vertices, self.save_freq,
                                 os.path.basename(self.target_image.filename)[:-4], self.algo, self.ffa)
 
@@ -64,6 +64,7 @@ class Sa:
 
         simulated_annealing = 0
         mse_dict = {}
+        current_best_mse = float("inf")
 
         # 1. Generate a random polygon constellation
         individual = self.constellation.generate_random_polygon_constellation()
@@ -73,14 +74,16 @@ class Sa:
             # 2. Compute MSE for the individual
             individual.mse = self.fitness.compute_mean_squared_error(individual.individual_as_array)
 
-            mse_ind = individual.mse
-            mse_dict[mse_ind] = 1 if individual.mse not in mse_dict else mse_dict[mse_ind] + 1
+            mse_ind = round(individual.mse, -1)
+            mse_dict[mse_ind] = 1 if mse_ind not in mse_dict else mse_dict[mse_ind] + 1
 
-            if self.save_freq != 0 and iteration % self.save_freq == 0:
+            if (not self.ffa and self.save_freq != 0 and iteration % self.save_freq == 0) or (self.ffa and individual.mse < current_best_mse):
                 self.save.save_csv(
                     iteration=iteration,
                     average_mse=individual.mse,
                 )
+                print(f"New best MSE: {individual.mse}")
+                current_best_mse = individual.mse
 
             if iteration == 0 or iteration == self.max_func_eval / 4 - 1 or iteration == self.max_func_eval / 2 - 1 or iteration == (self.max_func_eval / 4) * 3 - 1:
                 self.save.save_images(iteration=iteration, individual=individual)
@@ -91,19 +94,16 @@ class Sa:
             # 4. Compute offspring MSE. If lower, offspring becomes new individual, else, compute chance of being discarded
             offspring.mse = self.fitness.compute_mean_squared_error(offspring.individual_as_array)
 
-            mse_off = offspring.mse
+            mse_off = round(offspring.mse, -1)
+            mse_dict[mse_off] = 1 if mse_off not in mse_dict else mse_dict[mse_off] + 1
 
-            mse_dict[mse_off] = 1 if offspring.mse not in mse_dict else mse_dict[mse_off] + 1
-
-            if (not self.ffa and offspring.mse < individual.mse) or (self.ffa and mse_dict[mse_off] < mse_dict[mse_ind]):
+            if (not self.ffa and offspring.mse < individual.mse) or (self.ffa and mse_dict[mse_off] <= mse_dict[mse_ind]):
                 individual = offspring
 
             else:
                 mse_difference = offspring.mse - individual.mse
 
-                probability, temperature = self.mutate.simulate_annealing(mse_difference, iteration, temperature if iteration != 0 else 1000)
-
-                if random.random() < probability:
+                if random.random() < self.mutate.simulate_annealing(mse_difference, iteration):
                     individual = offspring
                     simulated_annealing += 1
 

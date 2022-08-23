@@ -83,20 +83,19 @@ class Mutations:
 
         return new_individual
 
-    def simulate_annealing(self, mse_diff: float, iteration_number: int, current_temperature: float) -> Tuple[float, float]:
+    def simulate_annealing(self, mse_diff: float, iteration_number: int) -> float:
         """
         Simulates annealing by computing the probability of a mutation based on the MSE difference and the temperature
-        :param current_temperature: The current temperature of the annealing process
         :param mse_diff: The MSE difference between the current and the previous generation
         :param iteration_number: The current iteration number
         :return: The probability of a mutation
         """
 
-        temperature = self._compute_temperature(iteration_number, current_temperature)
+        temperature = self._compute_temperature(iteration_number)
 
         probability = math.exp(-mse_diff / temperature)
 
-        return probability, temperature
+        return probability
 
     def _compute_offspring_count(self, individual: Constellation) -> int:
         """
@@ -227,21 +226,15 @@ class Mutations:
         return random_polygon
 
     @staticmethod
-    def _compute_temperature(iteration_number: int, current_temp: float) -> float:
+    def _compute_temperature(iteration_number: int) -> float:
         """
         Utility function to compute the temperature based on the iteration number
         :param iteration_number: The iteration number
         :return: The new temperature
         """
+        temperature = 1000 * 0.99999 ** iteration_number
 
-        # c = 195075
-        #
-        # if iteration_number == 0:
-        #     return c / 1
-        #
-        # temperature = c / math.log(iteration_number + 1)
-
-        return current_temp * 0.99999
+        return temperature
 
     @staticmethod
     def _find_random_point(vertex: Tuple[Tuple[float, float], Tuple[float, float]]) -> Optional[Tuple[float, float]]:

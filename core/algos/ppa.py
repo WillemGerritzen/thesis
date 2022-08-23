@@ -70,6 +70,7 @@ class Ppa:
         base_csv_save = 1
         base_image_save = 1
         mse_dict = {}
+        current_best_mse = float('inf')
 
         while count_func_eval < self.max_func_eval:
             count_func_eval += len(offsprings)
@@ -81,7 +82,8 @@ class Ppa:
             self.fitness.compute_population_fitness(population)
 
             for individual in population:
-                mse_dict[individual.mse] = 1 if individual.mse not in mse_dict else mse_dict[individual.mse] + 1
+                mse_ind = round(individual.mse, -1)
+                mse_dict[mse_ind] = 1 if mse_ind not in mse_dict else mse_dict[mse_ind] + 1
 
             # 3. Sort population and discard the worst individuals
             if self.ffa:
@@ -89,10 +91,10 @@ class Ppa:
             else:
                 population = self.fitness.sort_population_by_fitness(population)[:self.max_population_size]
 
-            average_fitness = stats.compute_average_fitness(population)
-            average_mse = stats.compute_average_mse(population)
+            if (not self.ffa and base_csv_save != csv_save) or (self.ffa and population[0].mse < current_best_mse):
+                average_fitness = stats.compute_average_fitness(population)
+                average_mse = stats.compute_average_mse(population)
 
-            if base_csv_save != csv_save:
                 base_csv_save = csv_save
                 self.save.save_csv(
                     iteration=count_func_eval,
@@ -101,6 +103,8 @@ class Ppa:
                     best_mse=population[0].mse,
                     best_fitness=population[0].fitness
                 )
+                print(f"New best MSE: {population[0].mse}")
+                current_best_mse = population[0].mse
 
             if base_image_save != image_save:
                 base_image_save = image_save
@@ -111,7 +115,8 @@ class Ppa:
 
             if self.ffa:
                 for mse in mse_lst:
-                    mse_dict[mse] = 1 if mse not in mse_dict else mse_dict[mse] + 1
+                    round_mse = round(mse, -1)
+                    mse_dict[round_mse] = 1 if round_mse not in mse_dict else mse_dict[round_mse] + 1
 
             # Last generation save
             if count_func_eval >= self.max_func_eval:

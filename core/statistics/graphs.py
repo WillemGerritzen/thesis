@@ -12,7 +12,7 @@ def graph_average_mse() -> None:
     vertices = [20, 100, 300, 500, 700, 1000]
     algos = ['hc', 'ppa', 'sa']
     algo_mapping = {
-        'sa': {'title': 'Simulated annealing', 'ylim': (14000, 80000), 'yscale': 'linear'},
+        'sa': {'title': 'Simulated annealing', 'ylim': (300, 80000), 'yscale': 'log'},
         'hc': {'title': 'Hill climber', 'ylim': (50, 16000), 'yscale': 'log'},
         'ppa': {'title': 'Plant propagation', 'ylim': (500, 15000), 'yscale': 'log'}
     }
@@ -72,7 +72,6 @@ def graph_average_mse() -> None:
     plt.savefig(f"{ANALYSIS_DIR}/fig/average_mse.png", bbox_inches='tight', format='png')
     plt.show()
 
-
 def graph_best_mse() -> None:
     csvs = [dir_ for dir_ in os.listdir(ANALYSIS_DIR) if dir_.endswith('.csv') and 'best_mse' in dir_]
     algos = ['hc', 'ppa', 'sa']
@@ -125,45 +124,47 @@ def graph_best_mse() -> None:
     plt.savefig(f"{ANALYSIS_DIR}/fig/best_mse_comp.png", bbox_inches='tight', format='png')
     plt.show()
 
+def average_runs_mse() -> None:
+    for algo in ['sa', 'ppa', 'hc']:
+        for vertices in [20, 100, 300, 500, 700, 1000]:
+            logs_dir = f'{LOG_DIR}/{vertices}/'
+            average_dir = f'{ANALYSIS_DIR}/{vertices}/average_mse_{algo}/'
 
-def average_runs_mse(algo: str) -> None:
-    for vertices in [20, 100, 300, 500, 700, 1000]:
-        logs_dir = f'{LOG_DIR}/{vertices}/'
-        average_dir = f'{ANALYSIS_DIR}/{vertices}/average_mse_{algo}/'
+            if not os.path.exists(average_dir):
+                os.makedirs(average_dir, exist_ok=True)
+            else:
+                for file in os.listdir(average_dir):
+                    os.remove(average_dir + file)
 
-        if not os.path.exists(average_dir):
-            os.makedirs(average_dir, exist_ok=True)
-        else:
-            for file in os.listdir(average_dir):
-                os.remove(average_dir + file)
-
-        for dir_ in os.listdir(logs_dir):
-            if dir_.split('_')[0] == 'average' or dir_.split('_')[0] == 'best':
-                continue
-
-            for csv in os.listdir(logs_dir + dir_):
-                if dir_.split('_')[-1] != algo:
+            for dir_ in os.listdir(logs_dir):
+                if dir_.split('_')[0] == 'average' or dir_.split('_')[0] == 'best':
                     continue
 
-                name = csv.lower().removeprefix("results_")
+                for csv in os.listdir(logs_dir + dir_):
+                    if dir_.split('_')[-1] != algo:
+                        continue
 
-                if 'johann' in name:
-                    name = name.replace('johann_sebastian_', '')
+                    name = csv.lower().removeprefix("results_")
 
-                if not os.path.exists(average_dir + name):
-                    df = pd.read_csv(logs_dir + dir_ + '/' + csv, usecols=['Iteration', 'Average MSE'])
-                    df.to_csv(average_dir + name, index=False)
+                    if 'johann' in name:
+                        name = name.replace('johann_sebastian_', '')
 
-                else:
-                    df = pd.read_csv(average_dir + name)
-                    df['Average MSE'] += pd.read_csv(logs_dir + dir_ + '/' + csv)['Average MSE']
-                    df.to_csv(average_dir + name, index=False)
+                    if not os.path.exists(average_dir + name):
+                        df = pd.read_csv(logs_dir + dir_ + '/' + csv, usecols=['Iteration', 'Average MSE'])
+                        df.to_csv(average_dir + name, index=False)
 
-        for csv in os.listdir(average_dir):
-            df = pd.read_csv(average_dir + csv)
-            df['Average MSE'] = df['Average MSE'].div(5)
-            df.to_csv(average_dir + csv, index=False)
+                    else:
+                        df = pd.read_csv(average_dir + name)
+                        df['Average MSE'] += pd.read_csv(logs_dir + dir_ + '/' + csv)['Average MSE']
+                        df.to_csv(average_dir + name, index=False)
 
+            for csv in os.listdir(average_dir):
+                df = pd.read_csv(average_dir + csv)
+                df['Average MSE'] = df['Average MSE'].div(5)
+                df.to_csv(average_dir + csv, index=False)
+
+def graph_mse_distribution() -> None:
+    pass
 
 def find_best_mse() -> None:
     dict_ = {}
@@ -378,10 +379,10 @@ if __name__ == '__main__':
     # find_best_mse()
     # graph_best_mse()
 
-    # average_runs_mse(algo)
+    average_runs_mse()
+    find_avg_mse()
     graph_average_mse()
 
-    # find_avg_mse()
 
     # find_avg_mse_other()
     # find_best_mse_other()
