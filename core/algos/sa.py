@@ -57,7 +57,7 @@ class Sa:
                                 os.path.basename(self.target_image.filename)[:-4], self.algo, self.ffa)
 
     def run_sa(self) -> Any:
-        """ Main simulted annealing logic """
+        """ Main simulated annealing logic """
 
         print(f"Run {self.run_number}: Starting {self.algo} with {self.count_vertices} "
               f"vertices on {self.target_image.filename}" + (" with FFA" if self.ffa else ""))
