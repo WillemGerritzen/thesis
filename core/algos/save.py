@@ -89,9 +89,8 @@ class SaveResults:
 
         lst = []
         for key, value in mapping.items():
-            for _ in value:
+            for _ in range(value):
                 lst.append(key)
-
 
         with open(self.log_directory + f"/list_{self.target_image_name}.pkl", "wb") as f:
             pickle.dump(lst, f)

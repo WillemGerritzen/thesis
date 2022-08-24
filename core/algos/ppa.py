@@ -82,18 +82,18 @@ class Ppa:
             self.fitness.compute_population_fitness(population)
 
             for individual in population:
-                mse_ind = round(individual.mse, -1)
+                mse_ind = individual.mse
                 mse_dict[mse_ind] = 1 if mse_ind not in mse_dict else mse_dict[mse_ind] + 1
 
             # 3. Sort population and discard the worst individuals
             if self.ffa:
-                population = self.fitness.sort_population_by_fitness_frequency(population, mse_dict)[:self.max_population_size]
-                current_best_individual = population[0]
+                population = self.fitness.sort_population_by_fitness_frequency(population, mse_dict)[
+                             :self.max_population_size]
             else:
                 population = self.fitness.sort_population_by_fitness(population)[:self.max_population_size]
 
             if (not self.ffa and base_csv_save != csv_save) or (
-                    (self.ffa and population[0].mse < current_best_individual.mse) or (
+                    self.ffa and (population[0].mse < current_best_individual.mse) or (
                     count_func_eval == len(population))):
                 average_fitness = stats.compute_average_fitness(population)
                 average_mse = stats.compute_average_mse(population)
@@ -105,7 +105,7 @@ class Ppa:
                     average_mse=average_mse,
                     average_fitness=average_fitness,
                     best_mse=current_best_individual.mse,
-                    best_fitness=population[0].fitness
+                    best_fitness=current_best_individual.fitness
                 )
 
             if base_image_save != image_save:
@@ -117,7 +117,7 @@ class Ppa:
 
             if self.ffa:
                 for mse in mse_lst:
-                    round_mse = round(mse, -1)
+                    round_mse = mse
                     mse_dict[round_mse] = 1 if round_mse not in mse_dict else mse_dict[round_mse] + 1
 
             # Last generation save
@@ -128,6 +128,6 @@ class Ppa:
                     average_mse=stats.compute_average_mse(population),
                     average_fitness=stats.compute_average_fitness(population),
                     best_mse=current_best_individual.mse,
-                    best_fitness=population[0].fitness
+                    best_fitness=current_best_individual.fitness
                 )
                 self.save.save_pickle(mse_dict)

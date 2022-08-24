@@ -93,7 +93,7 @@ class Mutations:
 
         temperature = self._compute_temperature(iteration_number)
 
-        probability = math.exp(-mse_diff / temperature)
+        probability = math.exp(-mse_diff / round(temperature, 2))
 
         return probability
 

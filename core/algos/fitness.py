@@ -101,6 +101,6 @@ class Fitness:
         :return: The sorted population.
         """
 
-        sorted_population = sorted(population, key=lambda x: mse_dict[round(x.mse, -1)])
+        sorted_population = sorted(population, key=lambda x: mse_dict[x.mse])
 
         return sorted_population
