@@ -69,7 +69,7 @@ def graph_average_mse() -> None:
                                 label=image)
 
     plt.plot()
-    plt.savefig(f"{ANALYSIS_DIR}/fig/average_mse.png", bbox_inches='tight', format='png')
+    # plt.savefig(f"{ANALYSIS_DIR}/fig/average_mse.png", bbox_inches='tight', format='png')
     plt.show()
 
 
@@ -401,7 +401,7 @@ if __name__ == '__main__':
 
     # average_runs_mse()
     # find_avg_mse()
-    graph_average_mse()
+    graph_average_mse(True)
 
     # find_avg_mse_other()
     # find_best_mse_other()
