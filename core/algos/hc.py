@@ -62,29 +62,32 @@ class Hc:
               f"vertices on {self.target_image.filename}" + (" with FFA" if self.ffa else ""))
 
         mse_dict = {}
-        current_best_mse = 1000000000.0
 
         # 1. Generate a random polygon constellation
         individual = self.constellation.generate_random_polygon_constellation()
+        current_best_individual = individual
 
         for iteration in range(self.max_func_eval):
 
             # 2. Compute MSE for the individual
             individual.mse = self.fitness.compute_mean_squared_error(individual.individual_as_array)
 
-            mse_ind = round(individual.mse, -1)
+            mse_ind = individual.mse
             mse_dict[mse_ind] = 1 if mse_ind not in mse_dict else mse_dict[mse_ind] + 1
 
-            if (not self.ffa and self.save_freq != 0 and iteration % self.save_freq == 0) or (self.ffa and individual.mse < current_best_mse):
+            if (not self.ffa and self.save_freq != 0 and iteration % self.save_freq == 0) or (
+                    (self.ffa and individual.mse < current_best_individual.mse) or (self.ffa
+                                                                                    and iteration == 0)):
+                current_best_individual = individual
                 self.save.save_csv(
                     iteration=iteration,
-                    average_mse=individual.mse,
+                    average_mse=current_best_individual.mse,
                 )
-                print(f"New best MSE: {individual.mse}")
-                current_best_mse = individual.mse
 
-            if iteration == 0 or iteration == self.max_func_eval / 4 - 1 or iteration == self.max_func_eval / 2 - 1 or iteration == (self.max_func_eval / 4) * 3 - 1:
-                self.save.save_images(iteration=iteration, individual=individual)
+
+            if iteration == 0 or iteration == self.max_func_eval / 4 - 1 or iteration == self.max_func_eval / 2 - 1 or iteration == (
+                    self.max_func_eval / 4) * 3 - 1:
+                self.save.save_images(iteration=iteration, individual=current_best_individual)
 
             # 3. Randomly mutate the individual
             offspring = self.mutate.randomly_mutate(individual, 1)
@@ -93,17 +96,18 @@ class Hc:
             # discarded
             offspring.mse = self.fitness.compute_mean_squared_error(offspring.individual_as_array)
 
-            mse_off = round(offspring.mse, -1)
+            mse_off = offspring.mse
             mse_dict[mse_off] = 1 if mse_off not in mse_dict else mse_dict[mse_off] + 1
 
-            if (not self.ffa and offspring.mse < individual.mse) or (self.ffa and mse_dict[mse_off] <= mse_dict[mse_ind]):
+            if (not self.ffa and offspring.mse < individual.mse) or (
+                    self.ffa and mse_dict[mse_off] <= mse_dict[mse_ind]):
                 individual = offspring
 
             # Last iteration save
             if iteration == self.max_func_eval - 1:
-                self.save.save_images(iteration=iteration, individual=individual)
+                self.save.save_images(iteration=iteration, individual=current_best_individual)
                 self.save.save_csv(
                     iteration=iteration,
-                    average_mse=individual.mse,
+                    average_mse=current_best_individual.mse,
                 )
                 self.save.save_pickle(mse_dict)

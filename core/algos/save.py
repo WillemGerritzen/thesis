@@ -87,5 +87,11 @@ class SaveResults:
         if not os.path.exists(self.log_directory):
             os.mkdir(self.log_directory)
 
-        with open(self.log_directory + f"/mapping_{self.target_image_name}.pkl", "wb") as f:
-            pickle.dump(mapping, f)
+        lst = []
+        for key, value in mapping.items():
+            for _ in value:
+                lst.append(key)
+
+
+        with open(self.log_directory + f"/list_{self.target_image_name}.pkl", "wb") as f:
+            pickle.dump(lst, f)

@@ -70,7 +70,7 @@ class Ppa:
         base_csv_save = 1
         base_image_save = 1
         mse_dict = {}
-        current_best_mse = float('inf')
+        current_best_individual = population[0]
 
         while count_func_eval < self.max_func_eval:
             count_func_eval += len(offsprings)
@@ -88,27 +88,29 @@ class Ppa:
             # 3. Sort population and discard the worst individuals
             if self.ffa:
                 population = self.fitness.sort_population_by_fitness_frequency(population, mse_dict)[:self.max_population_size]
+                current_best_individual = population[0]
             else:
                 population = self.fitness.sort_population_by_fitness(population)[:self.max_population_size]
 
-            if (not self.ffa and base_csv_save != csv_save) or (self.ffa and population[0].mse < current_best_mse):
+            if (not self.ffa and base_csv_save != csv_save) or (
+                    (self.ffa and population[0].mse < current_best_individual.mse) or (
+                    count_func_eval == len(population))):
                 average_fitness = stats.compute_average_fitness(population)
                 average_mse = stats.compute_average_mse(population)
 
                 base_csv_save = csv_save
+                current_best_individual = population[0]
                 self.save.save_csv(
                     iteration=count_func_eval,
                     average_mse=average_mse,
                     average_fitness=average_fitness,
-                    best_mse=population[0].mse,
+                    best_mse=current_best_individual.mse,
                     best_fitness=population[0].fitness
                 )
-                print(f"New best MSE: {population[0].mse}")
-                current_best_mse = population[0].mse
 
             if base_image_save != image_save:
                 base_image_save = image_save
-                self.save.save_images(iteration=count_func_eval, individual=population[0])
+                self.save.save_images(iteration=count_func_eval, individual=current_best_individual)
 
             # 4. Create offsprings
             offsprings, mse_lst = self.mutate.generate_offsprings(population)
@@ -120,12 +122,12 @@ class Ppa:
 
             # Last generation save
             if count_func_eval >= self.max_func_eval:
-                self.save.save_images(iteration=count_func_eval, individual=population[0])
+                self.save.save_images(iteration=count_func_eval, individual=current_best_individual)
                 self.save.save_csv(
                     iteration=count_func_eval,
                     average_mse=stats.compute_average_mse(population),
                     average_fitness=stats.compute_average_fitness(population),
-                    best_mse=population[0].mse,
+                    best_mse=current_best_individual.mse,
                     best_fitness=population[0].fitness
                 )
                 self.save.save_pickle(mse_dict)

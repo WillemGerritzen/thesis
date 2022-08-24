@@ -12,7 +12,7 @@ def graph_average_mse() -> None:
     vertices = [20, 100, 300, 500, 700, 1000]
     algos = ['hc', 'ppa', 'sa']
     algo_mapping = {
-        'sa': {'title': 'Simulated annealing', 'ylim': (300, 80000), 'yscale': 'log'},
+        'sa': {'title': 'Simulated annealing', 'ylim': (125, 80000), 'yscale': 'log'},
         'hc': {'title': 'Hill climber', 'ylim': (50, 16000), 'yscale': 'log'},
         'ppa': {'title': 'Plant propagation', 'ylim': (500, 15000), 'yscale': 'log'}
     }
@@ -56,21 +56,22 @@ def graph_average_mse() -> None:
                     ax.spines['top'].set_visible(False)
                     ax.spines['right'].set_visible(False)
 
+                    legends = ['bach', 'convergence', 'mona_lisa', 'mondriaan', 'starry_night', 'the_kiss',
+                               'the_persistence_of_memory']
                     if count_a == 0:
-                        pretty_legends = format_legends(
-                            ['bach', 'convergence', 'mona_lisa', 'mondriaan', 'starry_night', 'the_kiss',
-                             'the_persistence_of_memory'])
+                        pretty_legends = format_legends(legends)
                         fig.legend(pretty_legends, frameon=False, fontsize=legend_size, loc='center',
                                    ncol=len(pretty_legends), columnspacing=1, bbox_to_anchor=(0.533, 0.99))
 
-                    for file in os.listdir(average_dir):
-                        df = pd.read_csv(average_dir + '/' + file, usecols=columns)
+                    for image in legends:
+                        df = pd.read_csv(f'{average_dir}{image}.csv', usecols=columns)
                         ax.plot(df[columns[0]], df[columns[1]],
-                                label=file.removesuffix('.csv').capitalize().replace('_', ' '))
+                                label=image)
 
     plt.plot()
     plt.savefig(f"{ANALYSIS_DIR}/fig/average_mse.png", bbox_inches='tight', format='png')
     plt.show()
+
 
 def graph_best_mse() -> None:
     csvs = [dir_ for dir_ in os.listdir(ANALYSIS_DIR) if dir_.endswith('.csv') and 'best_mse' in dir_]
@@ -124,6 +125,7 @@ def graph_best_mse() -> None:
     plt.savefig(f"{ANALYSIS_DIR}/fig/best_mse_comp.png", bbox_inches='tight', format='png')
     plt.show()
 
+
 def average_runs_mse() -> None:
     for algo in ['sa', 'ppa', 'hc']:
         for vertices in [20, 100, 300, 500, 700, 1000]:
@@ -163,8 +165,24 @@ def average_runs_mse() -> None:
                 df['Average MSE'] = df['Average MSE'].div(5)
                 df.to_csv(average_dir + csv, index=False)
 
+
 def graph_mse_distribution() -> None:
-    pass
+    df = pd.read_pickle(f'results/others/mapping_bach.pkl')
+    lst = []
+    for key, value in df.items():
+        for _ in range(value):
+            lst.append(key)
+    fig, ax = plt.subplots()
+    ax.hist(lst, bins=50)
+    plt.show()
+
+
+def graph_ffa() -> None:
+    df = pd.read_csv(f'results/others/results_bach.csv', usecols=['Iteration', 'Average MSE'])
+    fig, ax = plt.subplots()
+    ax.plot(df['Iteration'], df['Average MSE'])
+    plt.show()
+
 
 def find_best_mse() -> None:
     dict_ = {}
@@ -203,6 +221,8 @@ def find_avg_mse() -> None:
 
     for vertices in os.listdir(LOG_DIR):
         for dir_ in os.listdir(f'{LOG_DIR}/{vertices}'):
+            if dir_.endswith('_ffa'):
+                continue
             algo = dir_.split('_')[-1]
             run = dir_.split('_')[0]
 
@@ -279,10 +299,10 @@ def find_avg_mse_other() -> None:
         df = df.reindex(sorted(df.index, key=lambda x: int(x)))
         if len(df.columns.values) == 6:
             df = df[['bach', 'convergence', 'mona_lisa', 'mondriaan', 'starry_night',
-                    'the_persistence_of_memory']]
+                     'the_persistence_of_memory']]
         else:
             df = df[['bach', 'convergence', 'mona_lisa', 'mondriaan', 'starry_night', 'the_kiss',
-                    'the_persistence_of_memory']]
+                     'the_persistence_of_memory']]
         df.to_csv(f'{ANALYSIS_DIR}/avg_mse_{algo}_other.csv', index_label='vertices')
 
 
@@ -379,10 +399,12 @@ if __name__ == '__main__':
     # find_best_mse()
     # graph_best_mse()
 
-    average_runs_mse()
-    find_avg_mse()
+    # average_runs_mse()
+    # find_avg_mse()
     graph_average_mse()
-
 
     # find_avg_mse_other()
     # find_best_mse_other()
+
+    # graph_ffa()
+    # graph_mse_distribution()
