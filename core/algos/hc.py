@@ -1,3 +1,4 @@
+import datetime
 import os
 from typing import Tuple, Any
 
@@ -58,6 +59,8 @@ class Hc:
     def run_hc(self) -> Any:
         """ Main hillclimber logic """
 
+        start_time = datetime.datetime.now()
+
         print(f"Run {self.run_number}: Starting {self.algo} with {self.count_vertices} "
               f"vertices on {self.target_image.filename}" + (" with FFA" if self.ffa else ""))
 
@@ -68,12 +71,14 @@ class Hc:
         current_best_individual = individual
 
         for iteration in range(self.max_func_eval):
+            time_lapsed = datetime.datetime.now() - start_time
 
             # 2. Compute MSE for the individual
             individual.mse = self.fitness.compute_mean_squared_error(individual.individual_as_array)
 
-            mse_ind = individual.mse
-            mse_dict[mse_ind] = 1 if mse_ind not in mse_dict else mse_dict[mse_ind] + 1
+            if self.ffa:
+                mse_ind = individual.mse
+                mse_dict[mse_ind] = 1 if mse_ind not in mse_dict else mse_dict[mse_ind] + 1
 
             if (not self.ffa and self.save_freq != 0 and iteration % self.save_freq == 0) or (
                     (self.ffa and individual.mse < current_best_individual.mse) or (self.ffa
@@ -84,10 +89,9 @@ class Hc:
                     average_mse=current_best_individual.mse,
                 )
 
-
-            if iteration == 0 or iteration == self.max_func_eval / 4 - 1 or iteration == self.max_func_eval / 2 - 1 or iteration == (
-                    self.max_func_eval / 4) * 3 - 1:
-                self.save.save_images(iteration=iteration, individual=current_best_individual)
+            # if iteration == 0 or iteration == self.max_func_eval / 4 - 1 or iteration == self.max_func_eval / 2 - 1 or iteration == (
+            #         self.max_func_eval / 4) * 3 - 1:
+            #     self.save.save_images(iteration=iteration, individual=current_best_individual)
 
             # 3. Randomly mutate the individual
             offspring = self.mutate.randomly_mutate(individual, 1)
@@ -96,18 +100,21 @@ class Hc:
             # discarded
             offspring.mse = self.fitness.compute_mean_squared_error(offspring.individual_as_array)
 
-            mse_off = offspring.mse
-            mse_dict[mse_off] = 1 if mse_off not in mse_dict else mse_dict[mse_off] + 1
+            if self.ffa:
+                mse_off = offspring.mse
+                mse_dict[mse_off] = 1 if mse_off not in mse_dict else mse_dict[mse_off] + 1
 
             if (not self.ffa and offspring.mse < individual.mse) or (
                     self.ffa and mse_dict[mse_off] <= mse_dict[mse_ind]):
                 individual = offspring
 
             # Last iteration save
-            if iteration == self.max_func_eval - 1:
+            # if iteration == self.max_func_eval - 1:
+            if time_lapsed >= datetime.timedelta(hours=119, minutes=59, seconds=30):
                 self.save.save_images(iteration=iteration, individual=current_best_individual)
                 self.save.save_csv(
                     iteration=iteration,
                     average_mse=current_best_individual.mse,
                 )
-                self.save.save_pickle(mse_dict)
+                # self.save.save_pickle(mse_dict)
+                exit(0)

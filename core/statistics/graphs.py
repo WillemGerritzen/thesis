@@ -399,9 +399,9 @@ if __name__ == '__main__':
     # find_best_mse()
     # graph_best_mse()
 
-    # average_runs_mse()
+    average_runs_mse()
     # find_avg_mse()
-    graph_average_mse(True)
+    graph_average_mse()
 
     # find_avg_mse_other()
     # find_best_mse_other()

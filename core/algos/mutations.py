@@ -95,8 +95,7 @@ class Mutations:
 
         try:
             probability = math.exp(-mse_diff / temperature)
-            print(iteration_number, probability)
-        except OverflowError as e:
+        except OverflowError:
             probability = 0
 
         return probability
