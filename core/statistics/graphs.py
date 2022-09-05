@@ -51,7 +51,7 @@ def graph_average_mse() -> None:
                         ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: format_number(x)))
 
                     if algos.index(algo) == 0:
-                        ax.set_title(f"{vertice} Vert.")
+                        ax.set_title(f"{vertice} vert.")
 
                     ax.spines['top'].set_visible(False)
                     ax.spines['right'].set_visible(False)
@@ -61,7 +61,7 @@ def graph_average_mse() -> None:
                     if count_a == 0:
                         pretty_legends = format_legends(legends)
                         fig.legend(pretty_legends, frameon=False, fontsize=legend_size, loc='center',
-                                   ncol=len(pretty_legends), columnspacing=1, bbox_to_anchor=(0.533, 0.99))
+                                   ncol=len(pretty_legends), columnspacing=1, bbox_to_anchor=(0.5, 0.99))
 
                     for image in legends:
                         df = pd.read_csv(f'{average_dir}{image}.csv', usecols=columns)
@@ -69,7 +69,7 @@ def graph_average_mse() -> None:
                                 label=image)
 
     plt.plot()
-    # plt.savefig(f"{ANALYSIS_DIR}/fig/average_mse.png", bbox_inches='tight', format='png')
+    plt.savefig(f"{ANALYSIS_DIR}/fig/average_mse.png", bbox_inches='tight', format='png')
     plt.show()
 
 
@@ -96,7 +96,7 @@ def graph_best_mse() -> None:
     fig.supxlabel('Vertices', weight='bold')
 
     for algo in algos:
-        axs = subfigs[algos.index(algo)].subplots(ncols=2, sharex=True, sharey=True)
+        axs = subfigs[algos.index(algo)].subplots(ncols=2, sharex='all', sharey='row')
         subfigs[algos.index(algo)].supylabel(algo_mapping[algo]['title'])
 
         for count, ax in enumerate(axs):
@@ -189,7 +189,12 @@ def find_best_mse() -> None:
 
     for vertices in os.listdir(LOG_DIR):
         for dir_ in os.listdir(f'{LOG_DIR}/{vertices}'):
-            algo = dir_.split('_')[-1]
+            info = dir_.split('_')
+            if info[-1] == 'ffa':
+                continue
+            algo = info[1]
+            if algo != 'sa':
+                continue
 
             if algo not in dict_:
                 dict_[algo] = {}
@@ -198,17 +203,19 @@ def find_best_mse() -> None:
                 dict_[algo][vertices] = {}
 
             for csv in os.listdir(f'{LOG_DIR}/{vertices}/{dir_}'):
+                if 'plot' in csv or csv.endswith('.pkl'):
+                    continue
                 name = csv.removeprefix("results_").removesuffix(".csv")
                 mse_col = 'Average MSE' if algo != 'ppa' else 'Best MSE'
 
                 if name not in dict_[algo][vertices]:
-                    dict_[algo][vertices][name] = pd.read_csv(f'{LOG_DIR}/{vertices}/{dir_}/{csv}')[mse_col].iloc[-1]
+                    dict_[algo][vertices][name] = int(pd.read_csv(f'{LOG_DIR}/{vertices}/{dir_}/{csv}')[mse_col].iloc[-1])
 
                 else:
                     current_value = dict_[algo][vertices][name]
                     new_value = pd.read_csv(f'{LOG_DIR}/{vertices}/{dir_}/{csv}')[mse_col].iloc[-1]
                     if new_value < current_value:
-                        dict_[algo][vertices][name] = new_value
+                        dict_[algo][vertices][name] = int(new_value)
 
     for algo in dict_:
         df = pd.DataFrame(dict_[algo]).T
@@ -396,12 +403,13 @@ def format_number(data_value: float) -> str:
 
 
 if __name__ == '__main__':
+    pass
     # find_best_mse()
     # graph_best_mse()
 
-    average_runs_mse()
+    # average_runs_mse()
     # find_avg_mse()
-    graph_average_mse()
+    # graph_average_mse()
 
     # find_avg_mse_other()
     # find_best_mse_other()

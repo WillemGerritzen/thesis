@@ -14,25 +14,57 @@ def mse_eval(x, a, b, c, d) -> float:
 
 def fit_curve() -> None:
     meta_data = {
-        'ffa': {
+        'hc_ffa': {
             'p0': (800000, -2000, 0.6, 13000),
             'file': '../../results/analysis/100/average_mse_hc_ffa/mondriaan_plot.csv',
             'columns': ['Iteration', 'MSE'],
-            'color': 'red',
+            'color': 'tab:blue',
             'pickle': '../../results/analysis/mondriaan_ffa.pickle'
         },
-        'no_ffa': {
+        'hc_no_ffa': {
             'p0': (800000, -2000, 0.55, 10000),
             'file': '../../results/analysis/100/average_mse_hc/mondriaan.csv',
             'columns': ['Iteration', 'Average MSE'],
-            'color': 'blue',
+            'color': 'tab:orange',
             'pickle': '../../results/analysis/mondriaan.pickle'
+        },
+        'ppa_ffa': {
+            'p0': (800000, -2000, 0.6, 13000),
+            'file': '../../results/analysis/20/average_mse_ppa_ffa/convergence_plot.csv',
+            'columns': ['Iteration', 'MSE'],
+            'color': 'tab:blue',
+            'pickle': '../../results/analysis/convergence_ffa.pickle'
+        },
+        'ppa_no_ffa': {
+            'p0': (800000, -2000, 0.55, 10000),
+            'file': '../../results/analysis/20/average_mse_ppa/convergence.csv',
+            'columns': ['Iteration', 'Average MSE'],
+            'color': 'tab:orange',
+            'pickle': '../../results/analysis/convergence.pickle'
+        },
+        'sa_ffa': {
+            'p0': (800000, -2000, 0.6, 13000),
+            'file': '../../results/analysis/1000/average_mse_sa_ffa/mona_lisa_plot.csv',
+            'columns': ['Iteration', 'MSE'],
+            'color': 'tab:blue',
+            'pickle': '../../results/analysis/mona_lisa_ffa.pickle'
+        },
+        'sa_no_ffa': {
+            'p0': (800000, -2000, 0.55, 10000),
+            'file': '../../results/analysis/1000/average_mse_sa/mona_lisa.csv',
+            'columns': ['Iteration', 'Average MSE'],
+            'color': 'tab:orange',
+            'pickle': '../../results/analysis/mona_lisa.pickle'
         }
     }
 
-    fig, ax = plt.subplots()
+    fig, axs = plt.subplots(3, 1, sharex='all', figsize=(5, 4.5), tight_layout=True)
 
-    for data in meta_data.values():
+    full_legend = []
+    algo_check = ['hc', 'ppa', 'sa']
+    y_label = ['1.', '2.', '3.']
+    for algo, data in meta_data.items():
+        plt_idx = algo_check.index(algo.split('_')[0])
         columns = data['columns']
         df = pd.read_csv(data['file'], usecols=columns)
         try:
@@ -41,18 +73,18 @@ def fit_curve() -> None:
             constants = curve_fit(mse_eval, df[columns[0]], df[columns[1]], p0=data['p0'], maxfev=1000000)
             pickle.dump(constants, open(data['pickle'], 'wb'))
         a, b, c, d = constants[0]
-        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: format_number(x)))
-        ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: format_number(x)))
-        ax.set_xlabel('Function Evaluations')
-        ax.set_ylabel('MSE')
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-        plt.suptitle('Mondriaan - HC - 100 v.')
-        # plt.axvline(x=999999, color='grey')
-        plt.plot(df[columns[0]], df[columns[1]], color=data['color'], alpha=0.5)
-        plt.plot(np.arange(0, 10000000, 1000), mse_eval(np.arange(0, 10000000, 1000), a, b, c, d), '--', color=data['color'])
-        plt.legend(['FFA', 'FFA - projection', 'No FFA', 'No FFA - projection'], )
-    plt.savefig('../../results/analysis/mondriaan_ffa_no_ffa.png')
+        axs[plt_idx].yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: format_number(x)))
+        axs[plt_idx].xaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: format_number(x)))
+        axs[plt_idx].spines['right'].set_visible(False)
+        axs[plt_idx].spines['top'].set_visible(False)
+        axs[plt_idx].plot(df[columns[0]], df[columns[1]], color=data['color'], alpha=0.7)
+        axs[plt_idx].plot(np.arange(0, 5000000, 1000), mse_eval(np.arange(0, 5000000, 1000), a, b, c, d), '--', color=data['color'])
+        axs[plt_idx].set_ylabel(y_label[plt_idx], rotation=0, labelpad=10)
+        fig.supylabel('MSE')
+        fig.supxlabel('Function evaluations')
+        fig.legend(['FFA', 'FFA - projection', 'No FFA', 'No FFA - projection'])
+        axs[plt_idx].axvline(x=999999, color='grey', alpha=0.7)
+    # plt.savefig('../../results/analysis/mondriaan_ffa_no_ffa.png')
     plt.show()
 
 

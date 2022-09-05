@@ -4,11 +4,13 @@ from typing import Dict, Tuple
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib import colors
 
 from core.statistics.graphs import format_legends, format_number
 
 ANALYSIS_DIR = 'results/analysis'
 LOG_DIR = 'results/log'
+
 
 def graph_average_mse() -> None:
     vertices = [20, 100, 300, 500, 700, 1000]
@@ -59,14 +61,14 @@ def graph_average_mse() -> None:
                     ax.spines['right'].set_visible(False)
 
                     legends = ['bach', 'convergence', 'mona_lisa', 'mondriaan', 'starry_night', 'the_kiss',
-                                'the_persistence_of_memory']
+                               'the_persistence_of_memory']
+
                     if count_a == 0:
                         pretty_legends = format_legends(legends)
                         fig.legend(pretty_legends, frameon=False, fontsize=legend_size, loc='center',
-                                   ncol=len(pretty_legends), columnspacing=1, bbox_to_anchor=(0.533, 0.99))
+                                   ncol=len(pretty_legends), columnspacing=1, bbox_to_anchor=(0.5, 0.99))
 
                     for image in legends:
-
                         df = pd.read_csv(f'{average_dir}{image}_plot.csv', usecols=columns)
                         ax.plot(df[columns[0]], df[columns[1]],
                                 label=image)
@@ -144,7 +146,8 @@ def find_best_run() -> Dict[str, Dict[str, Tuple[str, float]]]:
             if not dict_[algo][vertices]:
                 dict_[algo][vertices] = run_dir, avg_mse
             else:
-                dict_[algo][vertices] = (run_dir, avg_mse) if avg_mse < dict_[algo][vertices][1] else dict_[algo][vertices]
+                dict_[algo][vertices] = (run_dir, avg_mse) if avg_mse < dict_[algo][vertices][1] else dict_[algo][
+                    vertices]
 
     return dict_
 
@@ -153,16 +156,42 @@ def plot_new_sa() -> None:
     columns = ['Iteration', 'Average MSE']
     images = ['bach', 'convergence', 'mona_lisa', 'mondriaan', 'starry_night', 'the_kiss', 'the_persistence_of_memory']
     vertices = [20, 100, 300, 500, 700, 1000]
-    fig, axs = plt.subplots(2, len(vertices) // 2, sharey='none', sharex='all')
-    for i in range(0, 2):
-        for vertex in vertices:
-            subplt = vertices.index(vertex)
-            if subplt / 2 >= 1.5:
-                continue
-            for image in images:
-                df = pd.read_csv(f'{ANALYSIS_DIR}/{vertex}/average_mse_sa/{image}.csv')
-                axs[i][subplt].plot(df[columns[0]], df[columns[1]])
 
+    figsize_ratio = (3, 1)
+
+    title_size = 22
+    axis_label_size = 14
+    legend_size = 10
+    size_subplots_mult = 3
+
+    fig, axs = plt.subplots(nrows=1,
+                            ncols=6,
+                            figsize=[x * size_subplots_mult for x in figsize_ratio],
+                            sharey='all',
+                            sharex='all',
+                            tight_layout=True)
+    fig.suptitle('Average MSE', fontsize=title_size, color='white')  # Creates space for the legends
+    fig.supxlabel('Function Evaluations')
+    fig.supylabel('Average MSE')
+
+    for vertex in vertices:
+        v_idx = vertices.index(vertex)
+        for image in images:
+            df = pd.read_csv(f'{ANALYSIS_DIR}/{vertex}/average_mse_sa/{image}.csv')
+            axs[v_idx].plot(df[columns[0]], df[columns[1]], alpha=0.9)
+            axs[v_idx].set_yscale('log')
+            axs[v_idx].xaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: format_number(x)))
+            axs[v_idx].yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: format_number(x)))
+            axs[v_idx].spines['top'].set_visible(False)
+            axs[v_idx].spines['right'].set_visible(False)
+            axs[v_idx].set_title(f'{vertex} Vertices')
+
+        if v_idx == 0:
+            pretty_legends = format_legends(images)
+            fig.legend(pretty_legends, frameon=False, loc='center',
+                       ncol=len(pretty_legends), columnspacing=0.5, bbox_to_anchor=(0.5, 0.97))
+
+    plt.savefig(f'{ANALYSIS_DIR}/fig/average_mse_sa_good.png', bbox_inches='tight')
     plt.show()
 
 
@@ -224,19 +253,61 @@ def plot_mse_distribution() -> None:
     freq_array = pd.read_pickle('results/log/1000/1_ppa_ffa/list_bach.pkl')
 
     fig, axs = plt.subplots()
-    axs.hist(freq_array, bins=100)
+    n, bins, patches = axs.hist(freq_array, bins=100)
+    fracs = n / n.max()
+    norm = colors.Normalize(fracs.min(), fracs.max())
+    for thisfrac, thispatch in zip(fracs, patches):
+        color = plt.cm.viridis(norm(thisfrac))
+        thispatch.set_facecolor(color)
     axs.spines['top'].set_visible(False)
     axs.spines['right'].set_visible(False)
-    axs.set_title('Bach - 1000 vertices - PPA')
-    axs.set_xlabel('MSE', fontdict={'size': 12})
-    axs.set_ylabel('Frequency', fontdict={'size': 12})
+    axs.set_title('Run 1 - Bach - 1000 vertices - PPA', fontsize=15)
+    axs.set_xlabel('MSE', fontdict={'size': 15})
+    axs.set_ylabel('Frequency', fontdict={'size': 15})
     axs.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: format_number(x)))
     axs.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: format_number(x)))
-    axs.set_xlim(None, 35000)
+    axs.set_xlim(None, 32500)
 
     plt.plot()
     plt.savefig('results/analysis/fig/mse_distribution.png')
     plt.show()
+
+
+def find_best_mse() -> None:
+    dict_ = {}
+
+    for vertices in os.listdir(LOG_DIR):
+        for dir_ in os.listdir(f'{LOG_DIR}/{vertices}'):
+            info = dir_.split('_')
+            if info[-1] != 'ffa':
+                continue
+            algo = info[1]
+
+            if algo not in dict_:
+                dict_[algo] = {}
+
+            if vertices not in dict_[algo]:
+                dict_[algo][vertices] = {}
+
+            for csv in os.listdir(f'{LOG_DIR}/{vertices}/{dir_}'):
+                if 'plot' in csv or csv.endswith('pkl'):
+                    continue
+                name = csv.removeprefix("results_").removesuffix(".csv")
+                mse_col = 'Average MSE' if algo != 'ppa' else 'Best MSE'
+
+                if name not in dict_[algo][vertices]:
+                    dict_[algo][vertices][name] = int(pd.read_csv(f'{LOG_DIR}/{vertices}/{dir_}/{csv}')[mse_col].min())
+
+                else:
+                    current_value = dict_[algo][vertices][name]
+                    new_value = pd.read_csv(f'{LOG_DIR}/{vertices}/{dir_}/{csv}')[mse_col].iloc[-1].min()
+                    if new_value < current_value:
+                        dict_[algo][vertices][name] = int(new_value)
+
+    for algo in dict_:
+        df = pd.DataFrame(dict_[algo]).T
+        df = df.reindex(sorted(df.index, key=lambda x: int(x)))
+        df.to_csv(f'{ANALYSIS_DIR}/best_mse_{algo}_ffa.csv', index_label='vertices')
 
 
 if __name__ == '__main__':
@@ -246,6 +317,7 @@ if __name__ == '__main__':
     # plot_new_sa()
     # plot_mse_distribution()
     # plot_long_mse()
+    # find_best_mse()
 
 # Plots: choose best run based on average last MSE of all paintings for all permutations of algos and vertices:
-    # 3 * 6 = 18 plots
+# 3 * 6 = 18 plots
